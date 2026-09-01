@@ -2,19 +2,26 @@
 import { defineConfig } from 'astro/config';
 
 /**
- * Демо живёт на GitHub Pages в подпапке репозитория:
- * https://manath-iq.github.io/grand-house-template/
+ * Демо живёт на своём поддомене и стоит в корне:
+ * https://grandhouse.manath.site/
  *
- * Отсюда base — префикс пути ко всем ассетам. Захардкодить его нельзя
- * навсегда: когда Grand House заведёт свой домен, сайт переедет в корень,
- * и с префиксом /grand-house-template/ все шрифты и фотографии отдали бы 404.
- * Поэтому оба значения читаются из окружения, а значения по умолчанию —
- * текущий адрес демо.
+ * base — префикс пути ко всем ассетам. На github.io сайт лежал в подпапке
+ * репозитория, и префикс был /grand-house-template. На собственном домене
+ * он в корне, и тот же префикс превращает каждый шрифт и каждую фотографию
+ * в 404: страница открывается голым HTML без стилей и картинок.
  *
- *   SITE_URL=https://grandhouse.ru SITE_BASE=/ npm run build
+ * Значения приходят из окружения — в workflow их подставляет
+ * actions/configure-pages, который знает про настроенный домен.
+ *
+ *   SITE_URL=https://manath-iq.github.io SITE_BASE=/grand-house-template npm run build
+ *
+ * Через ?? , а не через || . Для домена в корне configure-pages отдаёт
+ * base_path пустой строкой, а пустая строка ложна — с || префикс молча
+ * возвращался бы к подпапке, и сборка снова уехала бы в 404. Ровно это
+ * и произошло при первом переезде на поддомен.
  */
-const site = process.env.SITE_URL || 'https://manath-iq.github.io';
-const base = process.env.SITE_BASE || '/grand-house-template';
+const site = process.env.SITE_URL ?? 'https://grandhouse.manath.site';
+const base = process.env.SITE_BASE ? process.env.SITE_BASE : '/';
 
 export default defineConfig({
   site,

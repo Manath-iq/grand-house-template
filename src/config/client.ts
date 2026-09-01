@@ -52,7 +52,7 @@ export const client: ClientConfig = {
   },
 
   site: {
-    url: 'https://manath-iq.github.io/grand-house-template',
+    url: 'https://grandhouse.manath.site',
     title: 'Grand House — каменные дома под ключ в Набережных Челнах',
     description:
       'Строительство каменных домов под ключ в Набережных Челнах и Тукаевском районе: керамоблок, газоблок, кирпич. Фиксированная смета в договоре, срок от четырёх месяцев. Предварительный макет сайта.',

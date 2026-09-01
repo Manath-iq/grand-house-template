@@ -35,6 +35,9 @@ jobs:
       # Pages, и шаг падает с «Resource not accessible by integration».
       # Pages включается один раз снаружи:
       #   gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow
+      # Для своего домена он отдаёт origin = https://grandhouse.manath.site
+      # и base_path пустой строкой. Пустую строку обрабатывает astro.config —
+      # там она означает корень, а не «значение не задано».
       - uses: actions/configure-pages@v5
         id: pages
 
@@ -43,6 +46,11 @@ jobs:
           SITE_URL: ${{ steps.pages.outputs.origin }}
           SITE_BASE: ${{ steps.pages.outputs.base_path }}
 
+      # В dist попадает public/CNAME. Файл обязателен: указание домена
+      # в настройках Pages один раз уже переключило build_type обратно
+      # на legacy, и домен начал отдавать страницу, собранную Jekyll
+      # из README, вместо сайта. CNAME в артефакте закрепляет домен
+      # за деплоем и не требует лазить в настройки руками.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
