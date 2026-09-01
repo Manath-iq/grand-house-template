@@ -1,0 +1,151 @@
+/**
+ * Токены ядра.
+ *
+ * Цветов здесь нет — база приходит из src/config/tokens.ts и инлайнится
+ * в <html style="…"> при сборке. Здесь только то, что не меняется:
+ * сетка, ритм, шкала, геометрия, скорости, и раскладка базы по смыслу.
+ */
+
+:root {
+  /* ── Сетка ──────────────────────────────────────────────────────────── */
+  /* 1280, а не 1320: премиальное впечатление держится на воздухе по краям,
+     и лишние 40 px ширины съедают его быстрее, чем добавляют контента. */
+  --shell: 1280px;
+  --shell-narrow: 880px;
+  --pad: 20px;
+  --gap: 20px;
+
+  /* ── Вертикальный ритм ──────────────────────────────────────────────── */
+  --sp-section: clamp(80px, 8.5vw, 136px);
+  --sp-block: clamp(36px, 4vw, 56px);
+  --sp-item: clamp(20px, 2.4vw, 32px);
+
+  /* ── Геометрия ──────────────────────────────────────────────────────── */
+  /* 14/18 вместо чертёжных 4: мягкий радиус — половина премиального
+     впечатления в этой нише. Ниже 12 макет читается как технический,
+     выше 20 — как детский. */
+  --r-sm: 10px;
+  --r: 14px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+  --hair: 1px;
+
+  /* ── Типографика ────────────────────────────────────────────────────── */
+  --font-display: 'Geologica', 'Onest', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Onest', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --fs-h1: clamp(40px, 6.4vw, 78px);
+  --fs-h2: clamp(29px, 4vw, 50px);
+  --fs-h3: clamp(20px, 2vw, 25px);
+  --fs-lead: clamp(17px, 1.5vw, 20px);
+  --fs-body: 17px;
+  --fs-small: 15px;
+  --fs-mono: 14px;
+  --fs-mono-sm: 12px;
+  --fs-eyebrow: 12px;
+
+  /* Крупный дисплейный текст без отрицательного трекинга рассыпается
+     на отдельные буквы. Значение зависит от кегля, поэтому их два. */
+  --tr-display: -0.03em;
+  --tr-h3: -0.015em;
+  --tr-eyebrow: 0.12em;
+
+  /* ── Движение ───────────────────────────────────────────────────────── */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 500ms;
+  --dur-fast: 200ms;
+
+  /* ── Слои ───────────────────────────────────────────────────────────── */
+  --z-header: 60;
+  --z-sticky: 70;
+  --z-modal: 100;
+
+  /* Единая обработка фотографий. Снимки объектов приходят от клиента
+     разнокалиберными — с телефона, в разную погоду, с разной насыщенностью.
+     Общий фильтр сводит их в один визуальный ряд без работы в редакторе
+     под каждый кадр. */
+  --photo-filter: saturate(0.88) contrast(1.04);
+
+  --header-h: 64px;
+  /* Высота шапки в сжатом состоянии — нужна липким блокам: если они встают
+     ниже, в просвет между шапкой и блоком видно проезжающий контент. */
+  --header-h-min: 56px;
+
+  color-scheme: light;
+}
+
+/**
+ * Смысловые токены.
+ *
+ * Три области: светлая база, тёмная секция и светлая плашка внутри тёмной.
+ * Каждая объявляет ВЕСЬ набор целиком — производные вроде --line
+ * вычисляются там, где объявлены, и потомки наследуют уже готовое значение.
+ * Переопределить один --bg недостаточно.
+ */
+
+:root,
+.on-paper {
+  --bg: var(--c-paper);
+  --bg-soft: var(--c-paper-soft);
+  --bg-deep: var(--c-paper-deep);
+  --fg: var(--c-ink);
+  --fg-muted: var(--c-muted);
+  --accent: var(--c-accent);
+  --accent-text: var(--c-accent);
+  /* Текст на бронзовой заливке: 5.60:1. */
+  --accent-fg: var(--c-paper);
+
+  --surface: var(--c-paper-soft);
+  --surface-hi: var(--c-paper-deep);
+  --line: color-mix(in srgb, var(--c-ink) 12%, transparent);
+  --line-soft: color-mix(in srgb, var(--c-ink) 7%, transparent);
+  --line-strong: color-mix(in srgb, var(--c-ink) 22%, transparent);
+  --accent-wash: color-mix(in srgb, var(--c-accent) 10%, transparent);
+  /* Длинная и слабая: на светлом фоне тень должна читаться как воздух под
+     карточкой, а не как обводка. */
+  --shadow: 0 20px 48px -32px color-mix(in srgb, var(--c-ink) 45%, transparent);
+  --shadow-hi: 0 28px 64px -34px color-mix(in srgb, var(--c-ink) 55%, transparent);
+}
+
+/* Тёмная секция: этапы, безопасность денег, футер. */
+.on-ink {
+  --bg: var(--c-ink);
+  --bg-soft: var(--c-ink-soft);
+  --bg-deep: var(--c-ink-deep);
+  --fg: var(--c-paper);
+  --fg-muted: var(--c-muted-on-ink);
+  --accent: var(--c-accent-on-ink);
+  --accent-text: var(--c-accent-on-ink);
+  /* На светлой бронзе текст должен быть тёмным: 7.07:1 наоборот не работает. */
+  --accent-fg: var(--c-ink);
+
+  --surface: var(--c-ink-soft);
+  --surface-hi: color-mix(in srgb, var(--c-paper) 8%, var(--c-ink-soft));
+  --line: color-mix(in srgb, var(--c-paper) 14%, transparent);
+  --line-soft: color-mix(in srgb, var(--c-paper) 8%, transparent);
+  --line-strong: color-mix(in srgb, var(--c-paper) 26%, transparent);
+  --accent-wash: color-mix(in srgb, var(--c-accent-on-ink) 14%, transparent);
+  --shadow: 0 20px 48px -30px rgb(0 0 0 / 0.8);
+  --shadow-hi: 0 28px 64px -30px rgb(0 0 0 / 0.9);
+}
+
+/* Футер — самый глубокий тон той же тёмной области. */
+.on-ink-deep {
+  --bg: var(--c-ink-deep);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --pad: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --pad: 48px;
+    --gap: 24px;
+    --fs-body: 18px;
+    --header-h: 76px;
+  }
+}

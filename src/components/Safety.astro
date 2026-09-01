@@ -1,0 +1,98 @@
+---
+/**
+ * Безопасность денег.
+ *
+ * Продолжение тёмной секции: этапы объяснили, как идёт стройка, здесь —
+ * что защищает сумму. Пункты фильтруются по флагу enabled ещё в конфиге:
+ * заявить эскроу и не иметь аккредитации хуже, чем не заявлять вовсе,
+ * потому что это ровно тот пункт, который проверяет банк.
+ */
+import Reveal from './Reveal.astro';
+import { derived } from '../config';
+import { copy } from '../config/copy';
+---
+
+<section class="section on-ink safety" id="safety" aria-labelledby="safety-title">
+  <div class="shell">
+    <div class="safety__head">
+      <span class="eyebrow">{copy.safety.eyebrow}</span>
+      <h2 id="safety-title">{copy.safety.title}</h2>
+    </div>
+
+    <ul class="safety__list">
+      {
+        derived.safetyItems.map((item, i) => (
+          <Reveal as="li" index={i} class="safety__item">
+            <span class="safety__num mono mono--sm">0{i + 1}</span>
+            <div>
+              <h3 class="safety__title">{item.title}</h3>
+              <p class="safety__text">{item.text}</p>
+            </div>
+          </Reveal>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .safety {
+    padding-top: 0;
+  }
+
+  .safety__head {
+    max-width: 46ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .safety__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .safety__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 16px;
+    padding-block: clamp(22px, 2.6vw, 30px);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .safety__num {
+    padding-top: 4px;
+    color: var(--accent-text);
+    letter-spacing: 0.06em;
+  }
+
+  .safety__title {
+    font-size: clamp(19px, 1.9vw, 23px);
+    margin-bottom: 10px;
+  }
+
+  .safety__text {
+    max-width: 68ch;
+    font-size: var(--fs-small);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 820px) {
+    .safety__item {
+      grid-template-columns: 56px minmax(0, 0.9fr) minmax(0, 1.3fr);
+      gap: 32px;
+      align-items: start;
+    }
+
+    .safety__item > div {
+      display: contents;
+    }
+
+    .safety__title {
+      margin-bottom: 0;
+    }
+  }
+</style>

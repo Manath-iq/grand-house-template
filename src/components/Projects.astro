@@ -1,0 +1,413 @@
+---
+/**
+ * Каталог проектов.
+ *
+ * Главный блок страницы: до него человек читал обещания, здесь впервые
+ * видит, что конкретно можно купить и за сколько. Цена есть у каждой
+ * карточки — её отсутствие в этой нише отправляет человека сравнивать
+ * к тому, у кого она написана.
+ *
+ * Планировка переключается прямо в карточке. Это не украшение: площадь
+ * в квадратных метрах ничего не говорит, пока не видно, как эти метры
+ * разложены по комнатам.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { asset } from '../lib/asset';
+import { money, area, floors, beds, months } from '../lib/format';
+
+const { projects } = client;
+const filters = [
+  { value: 'all', label: copy.projects.filterAll },
+  { value: '1', label: copy.projects.filterFloors1 },
+  { value: '2', label: copy.projects.filterFloors2 },
+];
+---
+
+<section class="section projects" id="projects" aria-labelledby="projects-title">
+  <div class="shell">
+    <div class="projects__head">
+      <div class="projects__intro">
+        <span class="eyebrow">{copy.projects.eyebrow}</span>
+        <h2 id="projects-title">{copy.projects.title}</h2>
+        <p class="lead projects__lead">{copy.projects.lead}</p>
+      </div>
+
+      <div class="projects__filters" role="group" aria-label={copy.projects.filterLabel}>
+        {
+          filters.map((filter) => (
+            <button
+              class="chip"
+              type="button"
+              data-filter={filter.value}
+              aria-pressed={filter.value === 'all' ? 'true' : 'false'}
+            >
+              {filter.label}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+
+    <ul class="projects__grid" data-projects>
+      {
+        projects.map((project, i) => (
+          <Reveal as="li" index={i % 3} class="projects__cell">
+            <article class="card card--lift project" data-floors={project.floors}>
+              <div class="project__media">
+                <img
+                  class="photo project__photo"
+                  src={asset(project.image)}
+                  alt={project.imageAlt}
+                  width="800"
+                  height="600"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <img
+                  class="project__plan"
+                  src={asset(project.plan)}
+                  alt={`Планировка проекта ${project.name}`}
+                  width="800"
+                  height="600"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <button class="project__toggle" type="button" data-plan-toggle aria-pressed="false">
+                  {copy.projects.planLabel}
+                </button>
+                <span class="project__tech mono mono--sm">{project.tech}</span>
+              </div>
+
+              <div class="project__body">
+                <div class="project__row">
+                  <h3 class="project__name">{project.name}</h3>
+                  <span class="project__price">
+                    <span class="project__from">{copy.projects.priceFrom}</span>
+                    {money(project.price)}
+                  </span>
+                </div>
+
+                <p class="project__tagline">{project.tagline}</p>
+
+                <p class="project__spec mono mono--sm">
+                  {area(project.area)} · {floors(project.floors)} · {beds(project.beds)} ·{' '}
+                  {months(project.termMonths)}
+                </p>
+
+                <ul class="project__features">
+                  {project.features.map((feature) => (
+                    <li>{feature}</li>
+                  ))}
+                </ul>
+
+                <button class="btn btn--ghost btn--wide project__cta" type="button" data-quiz-open>
+                  {copy.projects.cta}
+                </button>
+              </div>
+            </article>
+          </Reveal>
+        ))
+      }
+    </ul>
+
+    <p class="projects__empty" data-projects-empty hidden>{copy.projects.empty}</p>
+
+    <p class="projects__note mono mono--sm">{copy.projects.note}</p>
+  </div>
+</section>
+
+<style>
+  .projects__head {
+    display: grid;
+    gap: var(--sp-item);
+    margin-bottom: var(--sp-block);
+  }
+
+  .projects__intro {
+    max-width: 52ch;
+  }
+
+  .projects__lead {
+    margin-top: 20px;
+  }
+
+  .projects__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chip {
+    min-height: 44px;
+    padding: 0 20px;
+    background: var(--surface);
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r-pill);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+
+  .chip:hover {
+    border-color: var(--line-strong);
+  }
+
+  .chip[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .projects__grid {
+    display: grid;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .projects__cell {
+    display: flex;
+  }
+
+  .project {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: var(--bg);
+  }
+
+  .project__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--surface-hi);
+  }
+
+  .project__photo,
+  .project__plan {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transition: opacity var(--dur-fast) var(--ease);
+  }
+
+  .project__photo {
+    object-fit: cover;
+    filter: var(--photo-filter);
+  }
+
+  .project__plan {
+    object-fit: contain;
+    padding: 12px;
+    background: var(--bg);
+    opacity: 0;
+  }
+
+  .project__media[data-showing='plan'] .project__photo {
+    opacity: 0;
+  }
+
+  .project__media[data-showing='plan'] .project__plan {
+    opacity: 1;
+  }
+
+  .project__toggle {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    /* 44 — нижняя граница удобной цели нажатия. Кнопка лежит поверх фотографии
+       в углу карточки, то есть попадать по ней приходится большим пальцем
+       на ходу: 36 px здесь давали промах через раз. */
+    min-height: 44px;
+    padding: 0 16px;
+    background: color-mix(in srgb, var(--c-paper) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r-pill);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--c-ink);
+    cursor: pointer;
+  }
+
+  .project__toggle[aria-pressed='true'] {
+    background: var(--c-ink);
+    border-color: var(--c-ink);
+    color: var(--c-paper);
+  }
+
+  .project__tech {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    padding: 5px 11px;
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--c-paper) 92%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: var(--c-ink);
+  }
+
+  .project__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: clamp(18px, 2.2vw, 26px);
+  }
+
+  .project__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .project__name {
+    font-size: 24px;
+    letter-spacing: 0.02em;
+  }
+
+  .project__price {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+    white-space: nowrap;
+  }
+
+  .project__from {
+    margin-right: 0.3em;
+    font-size: 0.72em;
+    font-weight: 300;
+    color: var(--fg-muted);
+  }
+
+  .project__tagline {
+    margin-top: 10px;
+    font-size: var(--fs-small);
+    line-height: 1.5;
+    color: var(--fg-muted);
+  }
+
+  .project__spec {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: var(--hair) solid var(--line);
+    color: var(--fg-muted);
+  }
+
+  .project__features {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 7px;
+    font-size: var(--fs-small);
+  }
+
+  .project__features li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--fg-muted);
+  }
+
+  .project__features li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .project__cta {
+    margin-top: auto;
+    padding-top: 0;
+  }
+
+  .project__body > .project__cta {
+    margin-top: 24px;
+  }
+
+  .projects__empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--fg-muted);
+  }
+
+  .projects__note {
+    margin-top: var(--sp-item);
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+
+  @media (min-width: 700px) {
+    .projects__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1060px) {
+    .projects__head {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    .projects__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  /** Фильтр каталога и переключатель «фото / планировка». */
+  const grid = document.querySelector<HTMLElement>('[data-projects]');
+  const empty = document.querySelector<HTMLElement>('[data-projects-empty]');
+  const chips = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+
+  if (grid && empty) {
+    const cells = Array.from(grid.children) as HTMLElement[];
+
+    chips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const value = chip.dataset.filter ?? 'all';
+        chips.forEach((other) => other.setAttribute('aria-pressed', String(other === chip)));
+
+        let shown = 0;
+        for (const cell of cells) {
+          const card = cell.querySelector<HTMLElement>('[data-floors]');
+          const match = value === 'all' || card?.dataset.floors === value;
+          cell.hidden = !match;
+          if (match) shown += 1;
+        }
+        empty.hidden = shown > 0;
+      });
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('[data-plan-toggle]').forEach((button) => {
+    const media = button.closest<HTMLElement>('.project__media');
+    if (!media) return;
+
+    button.addEventListener('click', () => {
+      const showingPlan = media.dataset.showing === 'plan';
+      if (showingPlan) {
+        delete media.dataset.showing;
+      } else {
+        media.dataset.showing = 'plan';
+      }
+      button.setAttribute('aria-pressed', String(!showingPlan));
+    });
+  });
+</script>

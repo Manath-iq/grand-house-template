@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="605" height="481.6" viewBox="0 0 605 481.6" role="img" aria-label="Планировка gh-224">
+  <rect width="605" height="481.6" fill="#F6F4F0"/>
+  <rect x="46" y="46" width="513" height="349.6" fill="none" stroke="#171614" stroke-width="1.6"/>
+  <rect x="61.2" y="61.2" width="482.6" height="319.2" fill="none" stroke="#171614" stroke-width="1.2"/>
+  <line x1="61.2" y1="129.6" x2="104.9" y2="129.6" stroke="#171614" stroke-width="1"/>
+  <line x1="139.1" y1="129.6" x2="198" y2="129.6" stroke="#171614" stroke-width="1"/>
+  <line x1="61.2" y1="198" x2="104.9" y2="198" stroke="#171614" stroke-width="1"/>
+  <line x1="139.1" y1="198" x2="198" y2="198" stroke="#171614" stroke-width="1"/>
+  <line x1="61.2" y1="289.2" x2="104.9" y2="289.2" stroke="#171614" stroke-width="1"/>
+  <line x1="139.1" y1="289.2" x2="198" y2="289.2" stroke="#171614" stroke-width="1"/>
+  <line x1="198" y1="61.2" x2="198" y2="203.70000000000002" stroke="#171614" stroke-width="1"/>
+  <line x1="198" y1="237.9" x2="198" y2="380.4" stroke="#171614" stroke-width="1"/>
+  <line x1="198" y1="274" x2="291.09999999999997" y2="274" stroke="#171614" stroke-width="1"/>
+  <line x1="325.3" y1="274" x2="418.4" y2="274" stroke="#171614" stroke-width="1"/>
+  <line x1="418.4" y1="61.2" x2="418.4" y2="203.70000000000002" stroke="#171614" stroke-width="1"/>
+  <line x1="418.4" y1="237.9" x2="418.4" y2="380.4" stroke="#171614" stroke-width="1"/>
+  <line x1="418.4" y1="205.6" x2="471.59999999999997" y2="205.6" stroke="#171614" stroke-width="1"/>
+  <line x1="505.8" y1="205.6" x2="543.8" y2="205.6" stroke="#171614" stroke-width="1"/>
+  <line x1="46" y1="421.6" x2="559" y2="421.6" stroke="#655F59" stroke-width="0.8"/>
+  <line x1="46" y1="417.6" x2="46" y2="425.6" stroke="#655F59" stroke-width="0.8"/>
+  <line x1="559" y1="417.6" x2="559" y2="425.6" stroke="#655F59" stroke-width="0.8"/>
+  <text x="122" y="84.8" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Тамбур</text>
+  <text x="122" y="100.8" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">8,8 м²</text>
+  <text x="122" y="160.8" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Гардероб</text>
+  <text x="122" y="176.8" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">7,2 м²</text>
+  <text x="122" y="240.6" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Санузел</text>
+  <text x="122" y="256.6" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">9,6 м²</text>
+  <text x="122" y="339.4" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Котельная</text>
+  <text x="122" y="355.4" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">11,2 м²</text>
+  <text x="308.2" y="157" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Кухня-гостиная</text>
+  <text x="308.2" y="173" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">34,8 м²</text>
+  <text x="308.2" y="331.8" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Холл, лестница</text>
+  <text x="308.2" y="347.8" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">18,6 м²</text>
+  <text x="488.7" y="122.8" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Кабинет</text>
+  <text x="488.7" y="138.8" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">15,5 м²</text>
+  <text x="488.7" y="297.6" text-anchor="middle" font-family="Onest, sans-serif" font-size="11" fill="#171614">Спальня</text>
+  <text x="488.7" y="313.6" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">18,5 м²</text>
+  <text x="302.5" y="413.6" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" fill="#655F59">13,5 м</text>
+  <text x="46" y="30" font-family="ui-monospace, monospace" font-size="11" fill="#7A5C38">1 ЭТАЖ · 124,2 м²</text>
+</svg>

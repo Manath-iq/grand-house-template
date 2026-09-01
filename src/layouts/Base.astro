@@ -1,0 +1,106 @@
+---
+/**
+ * Общая обёртка страницы.
+ *
+ * Здесь же инлайнится палитра в <html style="…">: цвета приходят из
+ * tokens.ts единственным местом, где они вообще есть в проекте.
+ */
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { palette, paletteToCssVars } from '../config/tokens';
+import { asset } from '../lib/asset';
+import preloadFonts from '../config/preload-fonts.json';
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Страницы вроде политики не должны попадать в выдачу отдельно. */
+  noindex?: boolean;
+}
+
+const { title = client.site.title, description = client.site.description, noindex = false } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? client.site.url).href;
+const ogImage = new URL(asset('/og.png'), Astro.site ?? client.site.url).href;
+
+/* Макет закрыт от индексации всегда: он не должен попасть в выдачу и
+   начать конкурировать с будущим боевым сайтом компании по её же названию. */
+const blockIndex = noindex || client.brand.draft;
+
+/**
+ * Микроразметка организации.
+ *
+ * aggregateRating подставляется только если рейтинг настоящий: разметка,
+ * не подтверждённая тем, что видно на странице, — прямой путь к санкциям
+ * поисковика, а не к звёздочкам в выдаче.
+ */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HomeAndConstructionBusiness',
+  name: client.brand.name,
+  description: client.site.description,
+  url: client.site.url,
+  telephone: [client.contacts.phone, client.contacts.phoneAlt].filter(Boolean),
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Набережные Челны',
+    addressRegion: 'Республика Татарстан',
+    addressCountry: 'RU',
+    streetAddress: 'Машиностроительная ул., 31, офис 3',
+  },
+  areaServed: client.site.region,
+  ...(client.contacts.mapCard && {
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: client.contacts.mapCard.rating,
+      reviewCount: client.contacts.mapCard.count,
+      bestRating: 5,
+    },
+  }),
+};
+---
+
+<!doctype html>
+<html lang="ru" style={paletteToCssVars()}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {blockIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={client.brand.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="ru_RU" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content={palette.paper} />
+    <link rel="icon" href={asset('/favicon.svg')} type="image/svg+xml" />
+
+    {
+      /* Критические субсеты грузятся параллельно с CSS, а не после него.
+         Без preload первый экран рисуется системным шрифтом и перерисовывается
+         своим — заметный скачок на мобильном соединении. */
+      preloadFonts.map((file) => (
+        <link rel="preload" href={asset(`/fonts/${file}`)} as="font" type="font/woff2" crossorigin />
+      ))
+    }
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+
+  <body>
+    <a class="skip" href="#main">{copy.header.skip}</a>
+    <slot />
+  </body>
+</html>

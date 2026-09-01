@@ -1,0 +1,106 @@
+---
+/**
+ * Полоса доверия сразу под первым экраном.
+ *
+ * Отвечает на вопрос, который возникает ровно в этот момент: «чем
+ * подтверждается всё написанное выше». Рейтинг ведёт на источник — цифра,
+ * которую нельзя открыть и проверить, доверия не добавляет.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+
+const { stats, contacts } = client;
+const ratingValue = contacts.mapCard ? contacts.mapCard.rating.toFixed(1).replace('.', ',') : null;
+---
+
+<section class="section trust" aria-labelledby="trust-title">
+  <div class="shell">
+    <h2 class="sr-only" id="trust-title">{copy.trust.title}</h2>
+    <ul class="trust__list">
+      {
+        stats.map((stat, i) => {
+          const isRating = ratingValue !== null && stat.value === ratingValue;
+          return (
+            <Reveal as="li" index={i} class="trust__item">
+              <span class="trust__value">{stat.value}</span>
+              <span class="trust__label">
+                {isRating && contacts.mapCard ? (
+                  <a class="trust__link" href={contacts.mapCard.href} target="_blank" rel="noopener">
+                    {stat.label}
+                  </a>
+                ) : (
+                  stat.label
+                )}
+              </span>
+              {stat.note && <span class="trust__note mono mono--sm">{stat.note}</span>}
+            </Reveal>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .trust {
+    padding-block: clamp(48px, 6vw, 88px);
+  }
+
+  .trust__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    /* Разделители сеткой, а не рамками: один общий цвет фона проступает
+       в зазорах и даёт ровные линии без двойной толщины на стыках. */
+    background: var(--line);
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+  }
+
+  .trust__item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: clamp(20px, 3vw, 34px);
+    background: var(--bg);
+  }
+
+  .trust__value {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 4vw, 46px);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: var(--tr-display);
+  }
+
+  .trust__label {
+    font-size: var(--fs-small);
+    line-height: 1.35;
+  }
+
+  .trust__link {
+    color: inherit;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+  }
+
+  .trust__link:hover {
+    text-decoration-color: var(--accent-text);
+  }
+
+  .trust__note {
+    color: var(--fg-muted);
+    line-height: 1.4;
+  }
+
+  @media (min-width: 760px) {
+    .trust__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

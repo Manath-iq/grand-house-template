@@ -1,0 +1,219 @@
+---
+/**
+ * Первый экран.
+ *
+ * Три вещи в порядке важности: что строим и где, сколько это стоит, как
+ * связаться. Цена вынесена в первый экран сознательно — в этой нише её
+ * отсутствие означает, что человек уйдёт искать её у того, кто написал.
+ *
+ * Цифры берутся из каталога, а не пишутся руками: «в шапке от 5 млн,
+ * в карточках от 6» — расхождение, которое читают как обман.
+ */
+import { client, derived } from '../config';
+import { copy } from '../config/copy';
+import { asset } from '../lib/asset';
+import { money, months } from '../lib/format';
+
+const { hero, contacts } = client;
+const term =
+  derived.minTerm === derived.maxTerm
+    ? months(derived.minTerm)
+    : `${derived.minTerm}–${derived.maxTerm} мес`;
+const waHref = contacts.whatsapp ? `https://wa.me/${contacts.whatsapp}` : null;
+---
+
+<section class="hero" id="top" data-hero>
+  <div class="shell">
+    <div class="hero__top">
+      <div class="hero__lede">
+        <h1 class="hero__title">{hero.headline}</h1>
+        <p class="hero__sub">{hero.sub}</p>
+        <div class="hero__actions">
+          <button class="btn btn--primary" type="button" data-quiz-open>{copy.cta}</button>
+          {
+            waHref && (
+              <a class="btn btn--ghost" href={waHref} target="_blank" rel="noopener">
+                {copy.hero.secondary}
+              </a>
+            )
+          }
+        </div>
+      </div>
+
+      <dl class="hero__figures">
+        <div class="hero__figure">
+          <dt class="mono mono--sm">{copy.hero.priceLabel}</dt>
+          <dd class="hero__figure-value">
+            <span class="hero__from">{copy.projects.priceFrom}</span>{money(derived.minPrice)}
+          </dd>
+        </div>
+        <div class="hero__figure">
+          <dt class="mono mono--sm">{copy.hero.termLabel}</dt>
+          <dd class="hero__figure-value">{term}</dd>
+        </div>
+        <div class="hero__figure">
+          <dt class="mono mono--sm">{copy.hero.areaLabel}</dt>
+          <dd class="hero__figure-value">{derived.minArea}–{derived.maxArea} м²</dd>
+        </div>
+      </dl>
+    </div>
+
+    <figure class="hero__media">
+      <img
+        class="photo hero__photo"
+        src={asset(hero.image)}
+        alt={hero.imageAlt}
+        width="1600"
+        height="900"
+        fetchpriority="high"
+        decoding="async"
+      />
+
+      {
+        contacts.mapCard && (
+          <figcaption class="hero__badge">
+            <span class="hero__badge-rating">
+              {contacts.mapCard.rating.toFixed(1).replace('.', ',')}
+            </span>
+            <span class="hero__badge-text">
+              {copy.reviews.ratingLabel} {contacts.mapCard.source}
+              <br />
+              <span class="muted">
+                {contacts.mapCard.count} {copy.reviews.countLabel}
+              </span>
+            </span>
+          </figcaption>
+        )
+      }
+    </figure>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: clamp(36px, 5vw, 72px) 0;
+  }
+
+  .hero__top {
+    display: grid;
+    gap: clamp(32px, 4vw, 56px);
+    margin-bottom: clamp(32px, 4vw, 56px);
+  }
+
+  .hero__title {
+    /* Ограничение по строке важнее ширины колонки: без него заголовок на
+       широком экране растягивается в одну длинную строку и теряет вес. */
+    max-width: 15ch;
+    margin-bottom: 24px;
+  }
+
+  .hero__sub {
+    max-width: 46ch;
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    color: var(--fg-muted);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .hero__figures {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 24px;
+    margin: 0;
+    padding-top: 24px;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .hero__figure dt {
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .hero__figure-value {
+    margin: 8px 0 0;
+    font-family: var(--font-display);
+    font-size: clamp(21px, 2.1vw, 27px);
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+    line-height: 1.15;
+    text-wrap: nowrap;
+  }
+
+  .hero__from {
+    margin-right: 0.35em;
+    font-size: 0.62em;
+    font-weight: 300;
+    color: var(--fg-muted);
+  }
+
+  .hero__media {
+    position: relative;
+    margin: 0;
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    background: var(--surface);
+  }
+
+  .hero__photo {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* Карточка рейтинга — единственная настоящая цифра-подтверждение на
+     первом экране, поэтому она лежит на фотографии, а не под ней. */
+  .hero__badge {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px 14px 16px;
+    border-radius: var(--r);
+    background: color-mix(in srgb, var(--c-paper) 92%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    font-size: var(--fs-small);
+    line-height: 1.35;
+  }
+
+  .hero__badge-rating {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: var(--tr-h3);
+    color: var(--accent-text);
+  }
+
+  @media (min-width: 900px) {
+    .hero__top {
+      grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
+      align-items: end;
+    }
+
+    .hero__figures {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .hero__figure + .hero__figure {
+      padding-top: 20px;
+      border-top: var(--hair) solid var(--line-soft);
+    }
+
+    .hero__photo {
+      aspect-ratio: 21 / 9;
+    }
+
+    .hero__badge {
+      left: 24px;
+      bottom: 24px;
+    }
+  }
+</style>

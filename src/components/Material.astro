@@ -1,0 +1,114 @@
+---
+/**
+ * «Почему камень».
+ *
+ * Единственный блок, которого нет в типовой структуре лендинга подрядчика.
+ * Он здесь потому, что это собственное позиционирование компании: в городе,
+ * где большинство строит каркас, «каменный дом» и есть их аргумент против
+ * более дешёвого предложения соседа. Без этого блока страница не отвечает
+ * на вопрос «почему у вас дороже», и он остаётся у человека в голове.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+
+const { material } = client;
+---
+
+<section class="section material" id="material" aria-labelledby="material-title">
+  <div class="shell">
+    <div class="material__head">
+      <span class="eyebrow">{copy.material.eyebrow}</span>
+      <h2 id="material-title">{material.title}</h2>
+      <p class="lead material__lead">{material.lead}</p>
+    </div>
+
+    <ul class="material__grid">
+      {
+        material.points.map((point, i) => (
+          <Reveal as="li" index={i} class="material__card">
+            <div class="material__figure">
+              <span class="material__figure-value">{point.figure}</span>
+              <span class="material__figure-note mono mono--sm">{point.figureNote}</span>
+            </div>
+            <h3 class="material__title">{point.title}</h3>
+            <p class="material__text">{point.text}</p>
+          </Reveal>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .material__head {
+    max-width: 46ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .material__lead {
+    margin-top: 20px;
+  }
+
+  .material__grid {
+    display: grid;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .material__card {
+    display: flex;
+    flex-direction: column;
+    padding: clamp(22px, 2.6vw, 32px);
+    background: var(--surface);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r-lg);
+  }
+
+  .material__figure {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .material__figure-value {
+    font-family: var(--font-display);
+    font-size: clamp(27px, 3vw, 36px);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: var(--tr-display);
+    color: var(--accent-text);
+  }
+
+  .material__figure-note {
+    color: var(--fg-muted);
+    line-height: 1.4;
+  }
+
+  .material__title {
+    margin-bottom: 12px;
+  }
+
+  .material__text {
+    font-size: var(--fs-small);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 680px) {
+    .material__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1080px) {
+    .material__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

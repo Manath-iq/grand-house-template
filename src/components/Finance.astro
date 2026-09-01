@@ -1,0 +1,474 @@
+---
+/**
+ * Оплата: как взять сумму, которую человек только что увидел в каталоге.
+ *
+ * Формула аннуитета лежит в src/lib/format.ts, а ставки и лимиты — в конфиге.
+ * Разделение практическое: программы меняются несколько раз в год, и править
+ * ради этого вёрстку никто не станет — а неверная ставка на странице
+ * вскрывается в банке и бьёт по подрядчику, а не по сайту.
+ *
+ * Ставки, помеченные в конфиге как непроверенные, сюда не попадают вовсе:
+ * фильтр стоит в src/config/index.ts и роняет сборку, если включена
+ * программа с нулевой ставкой.
+ */
+import { client, derived } from '../config';
+import { copy } from '../config/copy';
+import { money, num } from '../lib/format';
+
+const { finance } = client;
+const programs = derived.mortgagePrograms;
+const defaultCost = derived.minPrice;
+const maxCost = Math.ceil(Math.max(...client.projects.map((p) => p.price)) / 1_000_000) * 1_000_000;
+---
+
+<section class="section finance" id="finance" aria-labelledby="finance-title">
+  <div class="shell">
+    <div class="finance__head">
+      <span class="eyebrow">{copy.finance.eyebrow}</span>
+      <h2 id="finance-title">{copy.finance.title}</h2>
+      <p class="lead finance__lead">{copy.finance.lead}</p>
+    </div>
+
+    <div class="finance__grid">
+      <form class="finance__form" data-calc novalidate>
+        <fieldset class="finance__field">
+          <legend class="finance__label">{copy.finance.programLabel}</legend>
+          <div class="finance__programs">
+            {
+              programs.map((program, i) => (
+                <label class="finance__program">
+                  <input type="radio" name="program" value={program.id} checked={i === 0} />
+                  <span class="finance__program-body">
+                    <span class="finance__program-name">{program.name}</span>
+                    <span class="finance__program-rate mono mono--sm">{program.rate}% годовых</span>
+                    <span class="finance__program-who">{program.who}</span>
+                  </span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+
+        <div class="finance__field">
+          <label class="finance__label" for="calc-cost">{copy.finance.costLabel}</label>
+          <output class="finance__out" id="calc-cost-out" for="calc-cost"></output>
+          <input
+            class="finance__range"
+            id="calc-cost"
+            type="range"
+            min={3_000_000}
+            max={maxCost}
+            step={100_000}
+            value={defaultCost}
+          />
+        </div>
+
+        <div class="finance__field">
+          <label class="finance__label" for="calc-down">{copy.finance.downLabel}</label>
+          <output class="finance__out" id="calc-down-out" for="calc-down"></output>
+          <input class="finance__range" id="calc-down" type="range" min={20} max={80} step={5} value={30} />
+        </div>
+
+        <div class="finance__field">
+          <label class="finance__label" for="calc-years">{copy.finance.yearsLabel}</label>
+          <output class="finance__out" id="calc-years-out" for="calc-years"></output>
+          <input class="finance__range" id="calc-years" type="range" min={5} max={30} step={1} value={20} />
+        </div>
+
+        {
+          finance.maternityCapital && (
+            <label class="finance__check">
+              <input type="checkbox" id="calc-mat" />
+              <span>
+                <span class="finance__check-title">{copy.finance.maternityLabel}</span>
+                <span class="finance__check-hint mono mono--sm">
+                  {copy.finance.maternityHint} · {money(finance.maternityCapital)}
+                </span>
+              </span>
+            </label>
+          )
+        }
+      </form>
+
+      <aside class="finance__result on-ink">
+        <p class="finance__monthly-label mono mono--sm">{copy.finance.monthly}</p>
+        <p class="finance__monthly" data-monthly>—</p>
+
+        <dl class="finance__summary">
+          <div>
+            <dt class="mono mono--sm">{copy.finance.loanAmount}</dt>
+            <dd data-loan>—</dd>
+          </div>
+          <div>
+            <dt class="mono mono--sm">{copy.finance.overpay}</dt>
+            <dd data-overpay>—</dd>
+          </div>
+        </dl>
+
+        <p class="finance__cap" data-cap hidden>
+          <span class="finance__cap-title">{copy.finance.capped}</span>
+          <span class="finance__cap-hint">{copy.finance.capHint}</span>
+        </p>
+
+        <button class="btn btn--primary btn--wide finance__cta" type="button" data-quiz-open>{copy.cta}</button>
+
+        <p class="finance__note mono mono--sm">
+          {copy.finance.checkedAt}: {finance.ratesCheckedAt}. {finance.ratesNote}
+        </p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<script
+  type="application/json"
+  data-programs
+  set:html={JSON.stringify(programs.map((p) => ({ id: p.id, rate: p.rate, maxLoan: p.maxLoan, maxYears: p.maxYears, minDownPayment: p.minDownPayment })))}
+/>
+<script
+  type="application/json"
+  data-maternity
+  set:html={JSON.stringify(finance.maternityCapital ?? 0)}
+/>
+
+<style>
+  .finance__head {
+    max-width: 52ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .finance__lead {
+    margin-top: 20px;
+  }
+
+  .finance__grid {
+    display: grid;
+    gap: var(--gap);
+    align-items: start;
+  }
+
+  .finance__form {
+    display: grid;
+    gap: clamp(24px, 3vw, 34px);
+    padding: clamp(22px, 2.8vw, 34px);
+    background: var(--surface);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r-lg);
+  }
+
+  .finance__field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 16px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .finance__label {
+    padding: 0;
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+
+  .finance__out {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .finance__range {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 44px;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  /* Дорожка и ползунок описываются дважды: браузеры не принимают общее
+     правило для -webkit- и -moz- псевдоэлементов в одном селекторе —
+     нераспознанный кусок аннулирует всё правило целиком. */
+  .finance__range::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: var(--r-pill);
+    background: var(--line-strong);
+  }
+
+  .finance__range::-moz-range-track {
+    height: 3px;
+    border-radius: var(--r-pill);
+    background: var(--line-strong);
+  }
+
+  .finance__range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -10.5px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  .finance__range::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: var(--shadow);
+  }
+
+  .finance__programs {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 10px;
+  }
+
+  .finance__program {
+    display: block;
+    cursor: pointer;
+  }
+
+  .finance__program input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  .finance__program-body {
+    display: grid;
+    gap: 4px;
+    padding: 16px 18px;
+    background: var(--bg);
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r);
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+
+  .finance__program input:checked + .finance__program-body {
+    border-color: var(--accent);
+    background: var(--accent-wash);
+  }
+
+  .finance__program input:focus-visible + .finance__program-body {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 3px;
+  }
+
+  .finance__program-name {
+    font-weight: 600;
+  }
+
+  .finance__program-rate {
+    color: var(--accent-text);
+  }
+
+  .finance__program-who {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--fg-muted);
+  }
+
+  .finance__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    cursor: pointer;
+  }
+
+  .finance__check input {
+    width: 22px;
+    height: 22px;
+    margin: 1px 0 0;
+    accent-color: var(--accent);
+    flex: none;
+  }
+
+  .finance__check-title {
+    display: block;
+    font-size: var(--fs-small);
+    font-weight: 500;
+  }
+
+  .finance__check-hint {
+    display: block;
+    margin-top: 3px;
+    color: var(--fg-muted);
+  }
+
+  .finance__result {
+    padding: clamp(24px, 3vw, 36px);
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: var(--r-lg);
+  }
+
+  .finance__monthly-label {
+    color: var(--fg-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .finance__monthly {
+    margin-top: 10px;
+    font-family: var(--font-display);
+    font-size: clamp(34px, 4.4vw, 52px);
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: var(--tr-display);
+    white-space: nowrap;
+  }
+
+  .finance__summary {
+    display: grid;
+    gap: 18px;
+    margin: 28px 0 0;
+    padding-top: 24px;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .finance__summary dt {
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .finance__summary dd {
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+  }
+
+  .finance__cap {
+    display: grid;
+    gap: 4px;
+    margin-top: 20px;
+    padding: 14px 16px;
+    border-radius: var(--r);
+    background: var(--accent-wash);
+    font-size: var(--fs-small);
+  }
+
+  .finance__cap-title {
+    font-weight: 600;
+    color: var(--accent-text);
+  }
+
+  .finance__cap-hint {
+    color: var(--fg-muted);
+    line-height: 1.45;
+  }
+
+  .finance__cta {
+    margin-top: 24px;
+  }
+
+  .finance__note {
+    margin-top: 18px;
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+
+  @media (min-width: 900px) {
+    .finance__grid {
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: clamp(24px, 3vw, 40px);
+    }
+
+    .finance__result {
+      position: sticky;
+      top: calc(var(--header-h-min) + 16px);
+    }
+  }
+</style>
+
+<script>
+  import { annuity, money, num, plural } from '../lib/format';
+
+  interface CalcProgram {
+    id: string;
+    rate: number;
+    maxLoan: number | null;
+    maxYears: number;
+    minDownPayment: number;
+  }
+
+  const form = document.querySelector<HTMLFormElement>('[data-calc]');
+  const programsNode = document.querySelector<HTMLScriptElement>('[data-programs]');
+  const maternityNode = document.querySelector<HTMLScriptElement>('[data-maternity]');
+
+  if (form && programsNode) {
+    const programs: CalcProgram[] = JSON.parse(programsNode.textContent || '[]');
+    const maternity: number = JSON.parse(maternityNode?.textContent || '0');
+
+    const cost = form.querySelector<HTMLInputElement>('#calc-cost')!;
+    const down = form.querySelector<HTMLInputElement>('#calc-down')!;
+    const years = form.querySelector<HTMLInputElement>('#calc-years')!;
+    const mat = form.querySelector<HTMLInputElement>('#calc-mat');
+
+    const costOut = form.querySelector<HTMLOutputElement>('#calc-cost-out')!;
+    const downOut = form.querySelector<HTMLOutputElement>('#calc-down-out')!;
+    const yearsOut = form.querySelector<HTMLOutputElement>('#calc-years-out')!;
+
+    const monthlyEl = document.querySelector<HTMLElement>('[data-monthly]')!;
+    const loanEl = document.querySelector<HTMLElement>('[data-loan]')!;
+    const overpayEl = document.querySelector<HTMLElement>('[data-overpay]')!;
+    const capEl = document.querySelector<HTMLElement>('[data-cap]')!;
+
+    const current = (): CalcProgram => {
+      const id = new FormData(form).get('program');
+      return programs.find((p) => p.id === id) ?? programs[0];
+    };
+
+    const update = () => {
+      const program = current();
+
+      /* Срок не может превышать потолок программы. Ограничиваем сам ползунок,
+         а не результат: иначе человек тянет до тридцати лет и не понимает,
+         почему платёж перестал меняться. */
+      years.max = String(program.maxYears);
+      if (Number(years.value) > program.maxYears) years.value = String(program.maxYears);
+
+      const minDown = Math.round(program.minDownPayment * 100);
+      down.min = String(minDown);
+      if (Number(down.value) < minDown) down.value = String(minDown);
+
+      const costValue = Number(cost.value);
+      const downShare = Number(down.value) / 100;
+      const termYears = Number(years.value);
+
+      const ownFunds = costValue * downShare + (mat?.checked ? maternity : 0);
+      const needed = Math.max(costValue - ownFunds, 0);
+      const loan = program.maxLoan ? Math.min(needed, program.maxLoan) : needed;
+
+      const monthly = annuity(loan, program.rate, termYears);
+      const overpay = monthly * termYears * 12 - loan;
+
+      costOut.textContent = money(costValue);
+      downOut.textContent = `${down.value}% · ${money(Math.round(costValue * downShare))}`;
+      yearsOut.textContent = `${termYears} ${plural(termYears, 'год', 'года', 'лет')}`;
+
+      monthlyEl.textContent = loan > 0 ? `${num(Math.round(monthly))} ₽` : '—';
+      loanEl.textContent = money(Math.round(loan));
+      overpayEl.textContent = loan > 0 ? money(Math.round(overpay)) : '—';
+
+      capEl.hidden = !(program.maxLoan !== null && needed > program.maxLoan);
+    };
+
+    form.addEventListener('input', update);
+    update();
+  }
+</script>

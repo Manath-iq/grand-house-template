@@ -1,0 +1,97 @@
+---
+/**
+ * Главная и единственная содержательная страница.
+ *
+ * Порядок блоков — это порядок разговора с покупателем: кто вы и сколько
+ * стоит → чем подтверждается → почему камень → что можно купить → почему
+ * у соседей дешевле → как это будет идти → не заберут ли деньги → где взять
+ * сумму → это правда построено → кто эти люди → что говорят другие →
+ * остальные возражения → действие.
+ *
+ * Переставлять блоки местами можно, но не бездумно: каждый следующий снимает
+ * возражение, которое возникает от предыдущего.
+ */
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Hero from '../components/Hero.astro';
+import TrustBar from '../components/TrustBar.astro';
+import Material from '../components/Material.astro';
+import Projects from '../components/Projects.astro';
+import Packages from '../components/Packages.astro';
+import Stages from '../components/Stages.astro';
+import Safety from '../components/Safety.astro';
+import Finance from '../components/Finance.astro';
+import Built from '../components/Built.astro';
+import Crew from '../components/Crew.astro';
+import Reviews from '../components/Reviews.astro';
+import Faq from '../components/Faq.astro';
+import Quiz from '../components/Quiz.astro';
+import StickyBar from '../components/StickyBar.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <Header />
+
+  <main id="main">
+    <Hero />
+    <TrustBar />
+    <Material />
+    <Projects />
+    <Packages />
+    <Stages />
+    <Safety />
+    <Finance />
+    <Built />
+    <Crew />
+    <Reviews />
+    <Faq />
+    <Quiz />
+  </main>
+
+  <Footer />
+  <StickyBar />
+</Base>
+
+<script>
+  /**
+   * Один наблюдатель на все появления по скроллу.
+   *
+   * По наблюдателю на компонент означало бы полтора десятка наблюдателей
+   * на страницу — каждый со своим коллбеком в главном потоке. Здесь один,
+   * и он отписывается от элемента сразу после показа: блок должен появиться
+   * один раз, а не мигать при прокрутке вверх-вниз.
+   */
+  const items = document.querySelectorAll<HTMLElement>('.reveal');
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduced || !('IntersectionObserver' in window)) {
+    items.forEach((el) => el.classList.add('is-in'));
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          /**
+           * Блок показывается и тогда, когда он уже выше экрана.
+           *
+           * Наблюдатель сообщает только текущее состояние. Если человек
+           * пришёл по якорю, обновил страницу с восстановленной прокруткой
+           * или пролистнул быстрым махом, всё, что осталось выше, никогда
+           * не окажется пересекающимся — и останется с opacity: 0 навсегда.
+           * Пустой экран вместо блока читается как сломанный сайт, а не как
+           * анимация, поэтому пропущенное показывается сразу.
+           */
+          const scrolledPast = entry.boundingClientRect.bottom <= 0;
+          if (!entry.isIntersecting && !scrolledPast) continue;
+          entry.target.classList.add('is-in');
+          observer.unobserve(entry.target);
+        }
+      },
+      /* Блок включается, когда вошёл в экран примерно на седьмую часть:
+         раньше — движение происходит за краем и его не видно, позже —
+         человек успевает прочитать пустое место. */
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.12 }
+    );
+    items.forEach((el) => observer.observe(el));
+  }
+</script>

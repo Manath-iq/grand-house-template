@@ -1,0 +1,136 @@
+---
+/**
+ * Построенные объекты.
+ *
+ * Сознательно без счётчика «построено N домов». Это самая проверяемая цифра
+ * на странице и первое, за что цепляются: доказать её нечем, а опровергнуть
+ * легко. Работает не число, а география — местный человек узнаёт Малую
+ * Шильну и Боровецкое и понимает, что может съездить посмотреть.
+ *
+ * И сознательно без фотографий. Снимков объектов у компании в открытом
+ * доступе нет ни одного, а поставить сюда сгенерированные картинки и назвать
+ * их построенными домами — ровно то враньё, которое проверяется одним
+ * вопросом «а это чей объект?». Реестр с географией и характеристиками
+ * работает без картинок, а когда компания пришлёт свои снимки, они встанут
+ * в ту же сетку.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { area } from '../lib/format';
+
+const { built } = client;
+---
+
+<section class="section built" id="built" aria-labelledby="built-title">
+  <div class="shell">
+    <div class="built__head">
+      <span class="eyebrow">{copy.built.eyebrow}</span>
+      <h2 id="built-title">{copy.built.title}</h2>
+      <p class="lead built__lead">{copy.built.lead}</p>
+    </div>
+
+    <ol class="built__list">
+      {
+        built.map((object, i) => (
+          <Reveal as="li" index={i} class="built__row">
+            <span class="built__index mono mono--sm">0{i + 1}</span>
+
+            <h3 class="built__place">{object.place}</h3>
+
+            <dl class="built__specs">
+              <div class="built__spec">
+                <dt class="mono mono--sm">{copy.built.areaLabel}</dt>
+                <dd class="mono">{area(object.area)}</dd>
+              </div>
+              <div class="built__spec">
+                <dt class="mono mono--sm">{copy.built.techLabel}</dt>
+                <dd class="mono">{object.tech}</dd>
+              </div>
+              <div class="built__spec">
+                <dt class="mono mono--sm">{copy.built.termLabel}</dt>
+                <dd class="mono">{object.term}</dd>
+              </div>
+              <div class="built__spec">
+                <dt class="mono mono--sm">{copy.built.yearLabel}</dt>
+                <dd class="mono">{object.year}</dd>
+              </div>
+            </dl>
+          </Reveal>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .built__head {
+    max-width: 50ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .built__lead {
+    margin-top: 20px;
+  }
+
+  .built__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: var(--hair) solid var(--line);
+  }
+
+  .built__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 16px;
+    padding-block: clamp(24px, 3vw, 34px);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .built__index {
+    padding-top: 5px;
+    color: var(--accent-text);
+    letter-spacing: 0.06em;
+  }
+
+  .built__place {
+    font-size: clamp(21px, 2.2vw, 28px);
+  }
+
+  .built__specs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+    margin: 20px 0 0;
+    grid-column: 2;
+  }
+
+  .built__spec dt {
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .built__spec dd {
+    margin: 6px 0 0;
+    color: var(--fg);
+  }
+
+  @media (min-width: 860px) {
+    /* Название слева, характеристики справа одной строкой: реестр читается
+       сверху вниз по названиям, а цифры сравниваются по колонкам. */
+    .built__row {
+      grid-template-columns: 48px minmax(0, 1fr) minmax(0, 1.15fr);
+      column-gap: var(--gap);
+      align-items: baseline;
+    }
+
+    .built__specs {
+      grid-column: 3;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 0;
+      gap: 0 16px;
+    }
+  }
+</style>

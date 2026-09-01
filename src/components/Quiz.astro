@@ -1,0 +1,508 @@
+---
+/**
+ * Квиз-расчёт.
+ *
+ * Пять вопросов, контакты — последними. Выбор варианта сразу ведёт дальше:
+ * отдельная кнопка «Дальше» на каждом шаге — это пять лишних касаний
+ * и заметный отвал ровно там, где человек уже согласился считать.
+ *
+ * Модалка — нативный <dialog>. Он даёт ловушку фокуса, закрытие по Esc,
+ * инертность фона и правильную роль для скринридера без единой строчки
+ * своего кода. Самописная модалка всё это повторяет хуже.
+ *
+ * Заявка уходит в WhatsApp: сервера у статики нет, а WhatsApp — тот канал,
+ * которым компания уже пользуется.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { asset } from '../lib/asset';
+
+const steps = client.quiz;
+/* Контакты — отдельный, последний шаг: в прогрессе он считается наравне
+   с вопросами, иначе полоса доходит до конца, а форма ещё впереди. */
+const total = steps.length + 1;
+---
+
+<section class="section quiz-cta" id="quiz" aria-labelledby="quiz-title">
+  <div class="shell">
+    <Reveal class="quiz-cta__box">
+      <span class="eyebrow">{copy.quiz.eyebrow}</span>
+      <h2 id="quiz-title">{copy.quiz.title}</h2>
+      <p class="lead quiz-cta__lead">{copy.quiz.lead}</p>
+      <button class="btn btn--primary quiz-cta__btn" type="button" data-quiz-open>
+        {copy.quiz.start}
+      </button>
+    </Reveal>
+  </div>
+</section>
+
+<dialog
+  class="quiz"
+  data-quiz
+  data-whatsapp={client.contacts.whatsapp ?? client.contacts.phoneRaw}
+  data-subject={client.lead.subject}
+  aria-labelledby="quiz-dialog-title"
+>
+  <form method="dialog" class="quiz__chrome">
+    <button class="quiz__close" value="close" aria-label={copy.quiz.close}>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">
+        <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+      </svg>
+    </button>
+  </form>
+
+  <div class="quiz__body">
+    <div class="quiz__top">
+      <p id="quiz-dialog-title" class="quiz__kicker mono mono--sm">
+        {copy.quiz.answersTitle}
+      </p>
+      <p class="quiz__counter mono mono--sm">
+        {copy.quiz.stepOf} <span data-quiz-current>1</span> {copy.quiz.of} {total}
+      </p>
+      <div
+        class="quiz__track"
+        role="progressbar"
+        aria-label={copy.quiz.progressLabel}
+        aria-valuemin="1"
+        aria-valuemax={total}
+        aria-valuenow="1"
+        data-quiz-progress
+      >
+        <span class="quiz__bar" data-quiz-bar></span>
+      </div>
+    </div>
+
+    {
+      steps.map((step, i) => (
+        <fieldset class="quiz__step" data-quiz-step={i} hidden={i !== 0}>
+          <legend class="quiz__question">{step.question}</legend>
+          <div class="quiz__options">
+            {step.options.map((option) => (
+              <button
+                class="quiz__option"
+                type="button"
+                data-quiz-pick={step.id}
+                data-quiz-value={option.value}
+              >
+                <span class="quiz__option-label">{option.label}</span>
+                {option.hint && <span class="quiz__option-hint">{option.hint}</span>}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ))
+    }
+
+    <div class="quiz__step" data-quiz-step={steps.length} hidden>
+      <p class="quiz__question">{copy.quiz.title}</p>
+
+      <div class="quiz__fields">
+        <label class="quiz__field">
+          <span class="quiz__label">{copy.quiz.nameLabel}</span>
+          <input
+            class="quiz__input"
+            type="text"
+            name="name"
+            autocomplete="name"
+            placeholder={copy.quiz.namePlaceholder}
+            data-quiz-name
+            required
+          />
+        </label>
+
+        <label class="quiz__field">
+          <span class="quiz__label">{copy.quiz.phoneLabel}</span>
+          <input
+            class="quiz__input"
+            type="tel"
+            name="phone"
+            autocomplete="tel"
+            inputmode="tel"
+            placeholder={copy.quiz.phonePlaceholder}
+            data-quiz-phone
+            required
+          />
+        </label>
+
+        <label class="quiz__field quiz__field--wide">
+          <span class="quiz__label">{copy.quiz.commentLabel}</span>
+          <textarea
+            class="quiz__input quiz__input--area"
+            name="comment"
+            rows="2"
+            placeholder={copy.quiz.commentPlaceholder}
+            data-quiz-comment></textarea>
+        </label>
+      </div>
+
+      <p class="quiz__error" data-quiz-error role="alert" hidden>{copy.quiz.required}</p>
+
+      <button class="btn btn--primary btn--wide quiz__submit" type="button" data-quiz-submit>
+        {copy.quiz.submit}
+      </button>
+
+      <p class="quiz__note">{copy.quiz.submitHint}</p>
+      <p class="quiz__note">
+        {copy.quiz.consent}{' '}
+        <a href={asset('/privacy')}>{copy.quiz.consentLink}</a>.
+      </p>
+    </div>
+
+    <button class="quiz__back" type="button" data-quiz-back hidden>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      {copy.quiz.back}
+    </button>
+  </div>
+</dialog>
+
+<style>
+  /* ── Приглашение ────────────────────────────────────────────────────── */
+
+  .quiz-cta {
+    background: var(--bg-soft);
+  }
+
+  .quiz-cta__box {
+    max-width: var(--shell-narrow);
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .quiz-cta__lead {
+    margin: 20px auto 0;
+  }
+
+  .quiz-cta__btn {
+    margin-top: var(--sp-block);
+    min-height: 56px;
+    padding-inline: 40px;
+  }
+
+  /* ── Модалка ────────────────────────────────────────────────────────── */
+
+  .quiz {
+    width: min(640px, calc(100vw - 32px));
+    max-height: min(88dvh, 780px);
+    padding: 0;
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r-lg);
+    background: var(--bg);
+    color: var(--fg);
+    box-shadow: var(--shadow-hi);
+    overflow: hidden;
+  }
+
+  .quiz::backdrop {
+    /* Подложка не из палитры: это не поверхность страницы, а затемнение
+       поверх неё, и она должна работать на любом фоне. */
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  .quiz__chrome {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1;
+    margin: 0;
+  }
+
+  .quiz__close {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    color: var(--fg);
+    cursor: pointer;
+    transition: background-color var(--dur-fast) var(--ease);
+  }
+
+  .quiz__close:hover {
+    background: var(--surface-hi);
+  }
+
+  .quiz__body {
+    padding: clamp(24px, 4vw, 36px);
+    max-height: inherit;
+    overflow-y: auto;
+  }
+
+  .quiz__top {
+    margin-bottom: clamp(24px, 3.4vw, 34px);
+  }
+
+  .quiz__kicker {
+    margin: 0;
+    color: var(--accent-text);
+    letter-spacing: var(--tr-eyebrow);
+    text-transform: uppercase;
+  }
+
+  .quiz__counter {
+    margin: 6px 0 12px;
+    color: var(--fg-muted);
+  }
+
+  .quiz__track {
+    height: 3px;
+    border-radius: var(--r-pill);
+    background: var(--bg-deep);
+    overflow: hidden;
+  }
+
+  .quiz__bar {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: var(--accent);
+    transition: width var(--dur) var(--ease);
+  }
+
+  .quiz__step {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .quiz__question {
+    display: block;
+    margin: 0 0 20px;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: clamp(21px, 2.4vw, 27px);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: var(--tr-h3);
+  }
+
+  .quiz__options {
+    display: grid;
+    gap: 10px;
+  }
+
+  .quiz__option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-height: 56px;
+    padding: 12px 20px;
+    justify-content: center;
+    text-align: left;
+    background: var(--surface);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease);
+  }
+
+  .quiz__option:hover {
+    background: var(--surface-hi);
+    border-color: var(--line-strong);
+  }
+
+  .quiz__option-label {
+    font-weight: 500;
+  }
+
+  .quiz__option-hint {
+    font-size: var(--fs-small);
+    color: var(--fg-muted);
+  }
+
+  /* ── Контакты ───────────────────────────────────────────────────────── */
+
+  .quiz__fields {
+    display: grid;
+    gap: 14px;
+  }
+
+  .quiz__field {
+    display: grid;
+    gap: 6px;
+  }
+
+  .quiz__label {
+    font-size: var(--fs-small);
+    color: var(--fg-muted);
+  }
+
+  .quiz__input {
+    min-height: 52px;
+    padding: 0 16px;
+    background: var(--surface);
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r);
+    color: var(--fg);
+    /* 16px — порог, ниже которого Safari на iOS зумит страницу при фокусе
+       и человек оказывается на приближённой форме без пути назад. */
+    font-size: 16px;
+  }
+
+  .quiz__input--area {
+    padding: 14px 16px;
+    min-height: 76px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .quiz__input:focus-visible {
+    border-color: var(--accent);
+  }
+
+  .quiz__error {
+    margin-top: 12px;
+    font-size: var(--fs-small);
+    color: var(--accent-text);
+  }
+
+  .quiz__submit {
+    margin-top: 20px;
+    min-height: 56px;
+  }
+
+  .quiz__note {
+    margin-top: 12px;
+    font-size: var(--fs-small);
+    line-height: 1.5;
+    color: var(--fg-muted);
+  }
+
+  .quiz__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    padding: 10px 4px;
+    border: 0;
+    background: none;
+    color: var(--fg-muted);
+    font-size: var(--fs-small);
+    cursor: pointer;
+  }
+
+  .quiz__back:hover {
+    color: var(--fg);
+  }
+
+  @media (min-width: 560px) {
+    .quiz__options {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .quiz__fields {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .quiz__field--wide {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Логика квиза.
+   *
+   * Состояние — простой объект «id шага → ответ». Ни хранилища, ни истории:
+   * человек проходит квиз за минуту, и восстанавливать его через сутки
+   * незачем, а сохранённый чужой ответ на общем компьютере хуже, чем его
+   * отсутствие.
+   */
+  const dialog = document.querySelector<HTMLDialogElement>('[data-quiz]');
+  if (dialog) {
+    const steps = [...dialog.querySelectorAll<HTMLElement>('[data-quiz-step]')];
+    const bar = dialog.querySelector<HTMLElement>('[data-quiz-bar]');
+    const track = dialog.querySelector<HTMLElement>('[data-quiz-progress]');
+    const counter = dialog.querySelector<HTMLElement>('[data-quiz-current]');
+    const back = dialog.querySelector<HTMLButtonElement>('[data-quiz-back]');
+    const body = dialog.querySelector<HTMLElement>('.quiz__body');
+    const error = dialog.querySelector<HTMLElement>('[data-quiz-error]');
+
+    const answers: Record<string, string> = {};
+    let current = 0;
+
+    function show(index: number) {
+      current = Math.max(0, Math.min(index, steps.length - 1));
+      steps.forEach((step, i) => step.toggleAttribute('hidden', i !== current));
+      if (bar) bar.style.width = `${((current + 1) / steps.length) * 100}%`;
+      if (counter) counter.textContent = String(current + 1);
+      track?.setAttribute('aria-valuenow', String(current + 1));
+      back?.toggleAttribute('hidden', current === 0);
+      // Длинный шаг мог оставить модалку прокрученной — следующий вопрос
+      // иначе открывается где-то ниже сгиба.
+      body?.scrollTo({ top: 0 });
+      /* Фокус переносится на первый управляемый элемент нового шага, иначе
+         после выбора варианта он остаётся на исчезнувшей кнопке и
+         клавиатурный проход начинается заново с начала документа. */
+      const focusable = steps[current].querySelector<HTMLElement>(
+        'button, input, textarea, [href]'
+      );
+      focusable?.focus({ preventScroll: true });
+    }
+
+    function open() {
+      show(0);
+      dialog!.showModal();
+    }
+
+    document.querySelectorAll<HTMLElement>('[data-quiz-open]').forEach((btn) => {
+      btn.addEventListener('click', open);
+    });
+
+    dialog.querySelectorAll<HTMLButtonElement>('[data-quiz-pick]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.quizPick;
+        if (id) answers[id] = btn.dataset.quizValue ?? '';
+        show(current + 1);
+      });
+    });
+
+    back?.addEventListener('click', () => show(current - 1));
+
+    dialog.querySelector<HTMLButtonElement>('[data-quiz-submit]')?.addEventListener('click', () => {
+      const name = dialog.querySelector<HTMLInputElement>('[data-quiz-name]');
+      const phone = dialog.querySelector<HTMLInputElement>('[data-quiz-phone]');
+      const comment = dialog.querySelector<HTMLTextAreaElement>('[data-quiz-comment]');
+
+      const nameValue = name?.value.trim() ?? '';
+      const phoneValue = phone?.value.trim() ?? '';
+
+      if (!nameValue || !phoneValue) {
+        error?.removeAttribute('hidden');
+        (nameValue ? phone : name)?.focus();
+        return;
+      }
+      error?.setAttribute('hidden', '');
+
+      const lines = [
+        dialog.dataset.subject ?? '',
+        '',
+        ...Object.entries(answers).map(([, value]) => `• ${value}`),
+        '',
+        `Имя: ${nameValue}`,
+        `Телефон: ${phoneValue}`,
+        ...(comment?.value.trim() ? [`Комментарий: ${comment.value.trim()}`] : []),
+      ];
+
+      const target = dialog.dataset.whatsapp;
+      if (target) {
+        window.open(
+          `https://wa.me/${target}?text=${encodeURIComponent(lines.join('\n'))}`,
+          '_blank',
+          'noopener'
+        );
+      }
+      dialog.close();
+    });
+  }
+</script>

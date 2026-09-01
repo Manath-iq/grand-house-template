@@ -1,0 +1,324 @@
+---
+/**
+ * Этапы строительства — тёмная секция и signature-элемент страницы.
+ *
+ * Схема дома собирается по мере того, как карточки этапов входят в экран,
+ * и вместе с ней заполняется шкала оплаты. Это не украшение: главное
+ * возражение в нише звучит как «отдам деньги и останусь без дома», и
+ * анимация показывает ровно обратное — платёж идёт следом за построенным,
+ * а не перед ним.
+ *
+ * Слой включается и больше не выключается. Дом растёт, а не мигает: при
+ * обратной прокрутке разбирать построенное было бы и странно, и тревожно.
+ */
+import HouseSvg from './HouseSvg.astro';
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+
+const { stages } = client;
+---
+
+<section class="section on-ink stages" id="stages" aria-labelledby="stages-title">
+  <div class="shell">
+    <div class="stages__head">
+      <span class="eyebrow">{copy.stages.eyebrow}</span>
+      <h2 id="stages-title">{copy.stages.title}</h2>
+      <p class="lead stages__lead">{copy.stages.lead}</p>
+    </div>
+
+    <div class="stages__grid">
+      <div class="stages__visual">
+        <div class="stages__sticky">
+          <HouseSvg />
+
+          <div class="stages__meter">
+            <div class="stages__bar" role="presentation">
+              {
+                stages.map((stage) => (
+                  <span
+                    class="stages__seg"
+                    data-seg={stage.layer}
+                    style={`flex-grow: ${stage.payment}`}
+                  />
+                ))
+              }
+            </div>
+            <p class="stages__meter-label mono mono--sm">
+              <span data-paid>0</span>% {copy.stages.paymentLabel}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <ol class="stages__list">
+        {
+          stages.map((stage, i) => (
+            <Reveal as="li" index={i === 0 ? 0 : 1} class="stages__item">
+              <article class="stage" data-stage={stage.layer}>
+                <header class="stage__head">
+                  <span class="stage__num mono mono--sm">0{stage.layer}</span>
+                  <h3 class="stage__title">{stage.title}</h3>
+                </header>
+
+                <dl class="stage__meta">
+                  <div>
+                    <dt class="mono mono--sm">{copy.stages.termLabel}</dt>
+                    <dd>{stage.term}</dd>
+                  </div>
+                  <div>
+                    <dt class="mono mono--sm">{copy.stages.paymentLabel}</dt>
+                    <dd>{stage.payment}%</dd>
+                  </div>
+                </dl>
+
+                <p class="stage__text">{stage.text}</p>
+
+                <p class="stage__deliverable">
+                  <span class="stage__deliverable-label mono mono--sm">{copy.stages.deliverableLabel}</span>
+                  {stage.deliverable}
+                </p>
+              </article>
+            </Reveal>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .stages__head {
+    max-width: 52ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .stages__lead {
+    margin-top: 20px;
+  }
+
+  .stages__grid {
+    display: grid;
+    gap: var(--sp-block);
+  }
+
+  .stages__sticky {
+    position: sticky;
+    /* Липкая схема встаёт ровно под сжатой шапкой: чуть ниже — и в просвет
+       видно проезжающий контент. */
+    top: calc(var(--header-h-min) + 12px);
+    padding: 20px;
+    background: var(--surface);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r-lg);
+  }
+
+  .stages__meter {
+    margin-top: 16px;
+  }
+
+  .stages__bar {
+    display: flex;
+    gap: 3px;
+    height: 6px;
+  }
+
+  .stages__seg {
+    flex-basis: 0;
+    border-radius: var(--r-pill);
+    background: var(--line);
+    transition: background-color var(--dur) var(--ease);
+  }
+
+  .stages__seg.is-on {
+    background: var(--accent);
+  }
+
+  .stages__meter-label {
+    margin-top: 10px;
+    color: var(--fg-muted);
+  }
+
+  .stages__list {
+    display: grid;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: stage;
+  }
+
+  .stage {
+    padding: clamp(22px, 2.6vw, 32px);
+    background: var(--surface);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r-lg);
+    transition: border-color var(--dur) var(--ease);
+  }
+
+  /* Активный этап получает акцентную рамку — связь между карточкой и тем,
+     что именно сейчас дорисовалось на схеме. */
+  .stage.is-on {
+    border-color: var(--accent-wash);
+  }
+
+  .stage__head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  .stage__num {
+    color: var(--accent-text);
+    letter-spacing: 0.06em;
+  }
+
+  .stage__title {
+    font-size: clamp(20px, 2vw, 26px);
+  }
+
+  .stage__meta {
+    display: flex;
+    gap: 32px;
+    margin: 18px 0 0;
+    padding: 16px 0;
+    border-top: var(--hair) solid var(--line);
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .stage__meta dt {
+    color: var(--fg-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .stage__meta dd {
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+  }
+
+  .stage__text {
+    margin-top: 18px;
+    font-size: var(--fs-small);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  .stage__deliverable {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: var(--r);
+    background: var(--bg);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+
+  .stage__deliverable-label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--accent-text);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: 920px) {
+    .stages__grid {
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+      gap: clamp(32px, 4vw, 64px);
+      /* align-items здесь не ставится сознательно.
+         При `start` колонка со схемой ужимается по содержимому, и липкому
+         блоку внутри неё физически некуда ехать: он уезжает вверх вместе
+         с карточками, и дом видно только наполовину. Растянутая на всю
+         высоту строки колонка — обязательное условие работы sticky. */
+      align-items: stretch;
+    }
+
+    .stages__visual {
+      order: 2;
+    }
+
+    .stages__list {
+      order: 1;
+    }
+
+    .stages__sticky {
+      padding: 32px;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Включение слоёв схемы по мере входа карточек в экран.
+   *
+   * Порог 0.45, а не 0: слой должен загораться, когда карточка действительно
+   * читается, а не когда её край показался снизу. Наблюдение снимается сразу
+   * после срабатывания — построенное не разбирается обратно.
+   */
+  const house = document.querySelector<HTMLElement>('[data-house]');
+  const stages = document.querySelectorAll<HTMLElement>('[data-stage]');
+  const paid = document.querySelector<HTMLElement>('[data-paid]');
+
+  if (house && stages.length) {
+    const total = new Map<string, number>();
+    document.querySelectorAll<HTMLElement>('[data-seg]').forEach((seg) => {
+      total.set(seg.dataset.seg ?? '', Number(seg.style.flexGrow) || 0);
+    });
+
+    let accumulated = 0;
+    /* Следующий слой, который ещё не нарисован. Нужен, чтобы достраивать
+       пропущенное: см. ниже. */
+    let next = 1;
+
+    const draw = (layer: number) => {
+      house.querySelector(`[data-layer="${layer}"]`)?.classList.add('is-on');
+      document.querySelector(`[data-seg="${layer}"]`)?.classList.add('is-on');
+      accumulated += total.get(String(layer)) ?? 0;
+      if (paid) paid.textContent = String(accumulated);
+    };
+
+    /**
+     * Включает слой и всё, что до него ещё не нарисовано.
+     *
+     * Наблюдатель сообщает только о текущем пересечении: если человек
+     * пролистнул быстрым махом или пришёл по якорю, карточка посередине
+     * не попадёт в отчёт вообще, и её слой останется выключенным. На схеме
+     * это выглядит как дом с окнами, но без кровли, а в шкале — как дыра
+     * между зелёными сегментами. Дом строится снизу вверх, поэтому
+     * пропущенное достраивается молча.
+     */
+    const activate = (layer: string) => {
+      const target = Number(layer);
+      if (!target || target < next) return;
+      for (let i = next; i <= target; i++) draw(i);
+      next = target + 1;
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const layer = (entry.target as HTMLElement).dataset.stage;
+          if (!layer) continue;
+          entry.target.classList.add('is-on');
+          activate(layer);
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.45 }
+    );
+
+    /* Уменьшенное движение: дом показывается собранным сразу, шкала —
+       заполненной. Ждать анимацию, которая не начнётся, человек не должен. */
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      stages.forEach((stage) => {
+        stage.classList.add('is-on');
+        activate(stage.dataset.stage ?? '');
+      });
+    } else {
+      stages.forEach((stage) => observer.observe(stage));
+    }
+  }
+</script>

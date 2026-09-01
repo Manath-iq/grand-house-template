@@ -1,0 +1,148 @@
+---
+/**
+ * Схема дома, которая собирается по мере прохождения этапов.
+ *
+ * Пять слоёв, по одному на этап: фундамент → коробка → кровля → окна и фасад
+ * → инженерия и отделка. Порядок строительный, а не «снизу вверх по
+ * картинке»: кровлю ставят раньше окон, и человек, который что-то строил,
+ * это заметит сразу.
+ *
+ * Линии не проявляются, а прочерчиваются. Для этого у каждого контура стоит
+ * pathLength="1": он нормирует длину пути к единице, и одна и та же пара
+ * dasharray/dashoffset работает для дуги, ломаной и прямоугольника, без
+ * вычисления реальной длины скриптом.
+ *
+ * Вся смелость макета потрачена здесь. Остальное движение на странице —
+ * двадцать пикселей и прозрачность.
+ */
+import { copy } from '../config/copy';
+---
+
+<svg
+  class="house"
+  viewBox="0 0 400 300"
+  role="img"
+  aria-label={copy.stages.houseAlt}
+  data-house
+>
+  <!-- 1. Фундамент -->
+  <g class="house__layer" data-layer="1">
+    <path class="house__line house__line--soft" d="M18 252H382" pathLength="1"></path>
+    <path class="house__line" d="M64 228h272v24H64z" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M64 240h272" pathLength="1"></path>
+  </g>
+
+  <!-- 2. Коробка: стены и перекрытие -->
+  <g class="house__layer" data-layer="2">
+    <path class="house__line" d="M76 128h248v100H76z" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M76 178h248" pathLength="1"></path>
+  </g>
+
+  <!-- 3. Кровля -->
+  <g class="house__layer" data-layer="3">
+    <path class="house__line" d="M58 133 200 44l142 89" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M70 128 200 52l130 76" pathLength="1"></path>
+  </g>
+
+  <!-- 4. Окна, дверь и фасад -->
+  <g class="house__layer" data-layer="4">
+    <path class="house__line" d="M96 142h34v28H96z" pathLength="1"></path>
+    <path class="house__line" d="M148 142h34v28h-34z" pathLength="1"></path>
+    <path class="house__line" d="M218 142h34v28h-34z" pathLength="1"></path>
+    <path class="house__line" d="M270 142h34v28h-34z" pathLength="1"></path>
+    <path class="house__line" d="M96 190h44v28H96z" pathLength="1"></path>
+    <path class="house__line" d="M260 190h44v28h-44z" pathLength="1"></path>
+    <path class="house__line" d="M180 186h40v42h-40z" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M200 186v42" pathLength="1"></path>
+    <path class="house__line house__line--accent" d="M190 100h20v20h-20z" pathLength="1"></path>
+  </g>
+
+  <!-- 5. Инженерия и отделка -->
+  <g class="house__layer" data-layer="5">
+    <path class="house__line" d="M272 62h20v33h-20z" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M64 131h272" pathLength="1"></path>
+    <path class="house__line house__line--soft" d="M170 228h60l10 12h-80z" pathLength="1"></path>
+    <path class="house__line house__line--dash house__line--accent" d="M330 240v-64h-18v-50" pathLength="1"></path>
+    <path class="house__line house__line--dash house__line--accent" d="M312 176h-96" pathLength="1"></path>
+  </g>
+</svg>
+
+<style>
+  .house {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .house__line {
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    /* pathLength="1" превращает эти два значения в «нарисовано 0%». */
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 900ms var(--ease);
+    transition-delay: var(--draw-delay, 0ms);
+  }
+
+  .house__line--soft {
+    stroke: var(--line-strong);
+    stroke-width: 1.5;
+  }
+
+  .house__line--accent {
+    stroke: var(--accent);
+  }
+
+  .house__line--dash {
+    stroke-width: 1.5;
+    /* Штрих поверх уже нарисованной линии дал бы кашу из двух dasharray,
+       поэтому «пунктирность» здесь имитируется полупрозрачностью. */
+    opacity: 0.75;
+  }
+
+  .house__layer.is-on .house__line {
+    stroke-dashoffset: 0;
+  }
+
+  /* Слои внутри одного этапа прочерчиваются лесенкой, иначе четыре окна
+     появляются одновременно и читаются как включённый свет, а не как работа. */
+  .house__layer .house__line:nth-child(2) {
+    --draw-delay: 90ms;
+  }
+  .house__layer .house__line:nth-child(3) {
+    --draw-delay: 180ms;
+  }
+  .house__layer .house__line:nth-child(4) {
+    --draw-delay: 270ms;
+  }
+  .house__layer .house__line:nth-child(5) {
+    --draw-delay: 360ms;
+  }
+  .house__layer .house__line:nth-child(6) {
+    --draw-delay: 450ms;
+  }
+  .house__layer .house__line:nth-child(7) {
+    --draw-delay: 540ms;
+  }
+  .house__layer .house__line:nth-child(8) {
+    --draw-delay: 630ms;
+  }
+  .house__layer .house__line:nth-child(9) {
+    --draw-delay: 720ms;
+  }
+
+  /**
+   * Просьба уменьшить движение — не «спрятать дом», а показать его готовым.
+   * Без этого правила схема осталась бы ненарисованной у всех, кто выставил
+   * настройку, и блок этапов потерял бы свою половину.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .house__line {
+      stroke-dashoffset: 0;
+      transition: none;
+    }
+  }
+</style>

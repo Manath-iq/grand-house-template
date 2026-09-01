@@ -1,0 +1,230 @@
+---
+/**
+ * Подвал.
+ *
+ * В этой нише подвал — не служебная зона, а последний блок доверия: перед
+ * тем как позвонить, человек проверяет, что за компанией стоит юрлицо
+ * с реквизитами и адресом, куда можно приехать. Мошенники ОГРН не пишут.
+ *
+ * Здесь же оговорка про макет. Одна тонкая строка вместо полосы «ДЕМО» над
+ * шапкой: получатель ссылки должен увидеть свой будущий сайт, а не баннер
+ * поверх него. От индексации страницу закрывает noindex в <head>, и этого
+ * достаточно, чтобы макет не начал конкурировать с их же будущим сайтом.
+ */
+import Logo from './Logo.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { asset } from '../lib/asset';
+
+const { brand, contacts } = client;
+const year = 2026;
+const hasRequisites = Boolean(brand.ogrn && brand.inn);
+---
+
+<footer class="section on-ink on-ink-deep footer" aria-labelledby="footer-title">
+  <h2 id="footer-title" class="sr-only">{brand.name}</h2>
+
+  <div class="shell">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <Logo size="lg" />
+        <p class="footer__tagline">{client.site.description}</p>
+      </div>
+
+      <nav class="footer__col" aria-label={copy.footer.navTitle}>
+        <h3 class="footer__col-title mono mono--sm">{copy.footer.navTitle}</h3>
+        <ul class="footer__list">
+          {copy.header.nav.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <h3 class="footer__col-title mono mono--sm">{copy.footer.contactsTitle}</h3>
+        <ul class="footer__list">
+          <li>
+            <a class="footer__phone" href={`tel:+${contacts.phoneRaw}`}>{contacts.phone}</a>
+          </li>
+          {
+            contacts.phoneAlt && contacts.phoneAltRaw && (
+              <li>
+                <a class="footer__phone" href={`tel:+${contacts.phoneAltRaw}`}>{contacts.phoneAlt}</a>
+              </li>
+            )
+          }
+          {
+            contacts.whatsapp && (
+              <li>
+                <a href={`https://wa.me/${contacts.whatsapp}`} target="_blank" rel="noopener">
+                  {copy.sticky.whatsapp}
+                </a>
+              </li>
+            )
+          }
+          {contacts.email && <li><a href={`mailto:${contacts.email}`}>{contacts.email}</a></li>}
+        </ul>
+
+        <dl class="footer__meta">
+          <dt class="mono mono--sm">{copy.footer.addressLabel}</dt>
+          <dd>{contacts.address}</dd>
+          <dt class="mono mono--sm">{copy.footer.hoursLabel}</dt>
+          <dd>{contacts.workHours}</dd>
+        </dl>
+      </div>
+
+      <div class="footer__col">
+        <h3 class="footer__col-title mono mono--sm">{copy.footer.docsTitle}</h3>
+        <ul class="footer__list">
+          <li><a href={asset('/privacy')}>{copy.footer.privacy}</a></li>
+          {
+            contacts.mapCard && (
+              <li>
+                <a href={contacts.mapCard.href} target="_blank" rel="noopener">
+                  {contacts.mapCard.source}
+                </a>
+              </li>
+            )
+          }
+        </ul>
+      </div>
+    </div>
+
+    <hr class="hairline footer__rule" />
+
+    <div class="footer__bottom">
+      <p class="footer__legal mono mono--sm">
+        {
+          hasRequisites
+            ? `${brand.legal} · ОГРН ${brand.ogrn} · ИНН ${brand.inn}`
+            : copy.footer.requisitesMissing
+        }
+      </p>
+      <p class="footer__legal mono mono--sm">© {year} {brand.name}. {copy.footer.rights}.</p>
+    </div>
+
+    {brand.draft && <p class="footer__draft">{copy.footer.draftNote}</p>}
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-bottom: clamp(40px, 5vw, 56px);
+  }
+
+  /* Липкая панель на мобильном перекрывает низ подвала. */
+  @media (max-width: 899px) {
+    .footer {
+      padding-bottom: calc(96px + env(safe-area-inset-bottom));
+    }
+  }
+
+  .footer__grid {
+    display: grid;
+    gap: var(--sp-block);
+  }
+
+  .footer__tagline {
+    max-width: 42ch;
+    margin-top: 20px;
+    font-size: var(--fs-small);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  .footer__col-title {
+    margin: 0 0 16px;
+    font-weight: 500;
+    letter-spacing: var(--tr-eyebrow);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .footer__list {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-small);
+  }
+
+  .footer__list a {
+    text-decoration: none;
+    color: var(--fg);
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  .footer__list a:hover {
+    color: var(--accent-text);
+  }
+
+  .footer__phone {
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    letter-spacing: -0.02em;
+  }
+
+  .footer__meta {
+    margin: 24px 0 0;
+    font-size: var(--fs-small);
+  }
+
+  .footer__meta dt {
+    margin-bottom: 4px;
+    letter-spacing: var(--tr-eyebrow);
+    text-transform: uppercase;
+    color: var(--fg-muted);
+  }
+
+  .footer__meta dd {
+    margin: 0 0 16px;
+    max-width: 34ch;
+    line-height: 1.5;
+  }
+
+  .footer__rule {
+    margin-block: var(--sp-block) 24px;
+  }
+
+  .footer__bottom {
+    display: grid;
+    gap: 8px;
+    color: var(--fg-muted);
+  }
+
+  .footer__legal {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /**
+   * Оговорка про макет.
+   *
+   * Приглушена, но не спрятана: 6.41:1 к фону — её видно и на телефоне
+   * при солнце. Прятать её нельзя, а кричать ею — незачем.
+   */
+  .footer__draft {
+    max-width: 92ch;
+    margin-top: 28px;
+    padding: 16px 20px;
+    border: var(--hair) solid var(--line);
+    border-radius: var(--r);
+    font-size: var(--fs-small);
+    line-height: 1.55;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 720px) {
+    .footer__grid {
+      grid-template-columns: 1.4fr 1fr 1.2fr 1fr;
+      gap: var(--gap);
+    }
+
+    .footer__bottom {
+      grid-template-columns: 1fr auto;
+      align-items: baseline;
+      gap: var(--gap);
+    }
+  }
+</style>

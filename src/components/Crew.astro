@@ -1,0 +1,108 @@
+---
+/**
+ * Кто ведёт стройку.
+ *
+ * Роли, а не люди с именами и лицами. Выдуманный сотрудник — самое
+ * проверяемое враньё на странице: достаточно спросить «а кто это?».
+ * Зона ответственности очеловечивает компанию не хуже, а подставить
+ * настоящих людей потом — это правка одного поля конфига.
+ *
+ * По той же причине здесь нет и фотографий: сгенерированное лицо под
+ * подписью «наш прораб» — это уже не заглушка, а выдуманный сотрудник.
+ * Когда компания пришлёт снимок бригады, он встанет над карточками.
+ */
+import Reveal from './Reveal.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+
+const { crew } = client;
+---
+
+<section class="section crew" id="crew" aria-labelledby="crew-title">
+  <div class="shell">
+    <div class="crew__head">
+      <span class="eyebrow">{copy.crew.eyebrow}</span>
+      <h2 id="crew-title">{crew.title}</h2>
+      <p class="lead crew__lead">{crew.lead}</p>
+    </div>
+
+    <ul class="crew__grid">
+      {
+        crew.roles.map((role, i) => (
+          <Reveal as="li" index={i} class="crew__cell">
+            <article class="crew__card">
+              <span class="crew__num mono mono--sm">0{i + 1}</span>
+              <h3 class="crew__role">{role.role}</h3>
+              <p class="crew__text">{role.text}</p>
+            </article>
+          </Reveal>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .crew {
+    background: var(--bg-soft);
+  }
+
+  .crew__head {
+    max-width: 50ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .crew__lead {
+    margin-top: 20px;
+  }
+
+  .crew__grid {
+    display: grid;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .crew__cell {
+    height: 100%;
+  }
+
+  .crew__card {
+    height: 100%;
+    padding: clamp(22px, 2.4vw, 30px);
+    background: var(--bg);
+    border: var(--hair) solid var(--line-soft);
+    border-radius: var(--r-lg);
+  }
+
+  .crew__num {
+    display: block;
+    margin-bottom: 18px;
+    color: var(--accent-text);
+    letter-spacing: 0.06em;
+  }
+
+  .crew__role {
+    font-size: clamp(18px, 1.7vw, 21px);
+  }
+
+  .crew__text {
+    margin-top: 12px;
+    font-size: var(--fs-small);
+    line-height: 1.6;
+    color: var(--fg-muted);
+  }
+
+  @media (min-width: 600px) {
+    .crew__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1000px) {
+    .crew__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

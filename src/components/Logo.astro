@@ -1,0 +1,90 @@
+---
+/**
+ * Знак компании.
+ *
+ * Марка повторяет фирменный знак Grand House: контурный дом с трубой,
+ * штриховкой скатов и тремя проёмами на фасаде. Перерисована в один вес
+ * линии и в квадрат 32x32, чтобы читалась и в шапке, и в favicon 16x16,
+ * где мелкие детали оригинала слипаются в пятно.
+ *
+ * Название набрано вразрядку двумя весами — так же, как в оригинале, где
+ * Grand House стоит над разряженной строкой подписи.
+ */
+import { client } from '../config';
+
+interface Props {
+  /** В подвале знак крупнее и стоит отдельно от навигации. */
+  size?: 'sm' | 'lg';
+}
+
+const { size = 'sm' } = Astro.props;
+const [first, ...rest] = client.brand.name.split(' ');
+---
+
+<span class:list={['logo', `logo--${size}`]}>
+  <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+    <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+      <!-- Труба: стоит на левом скате, как в оригинале. -->
+      <path d="M9.5 10.2V6.4h2.4v2" />
+      <!-- Скаты и контур стен. -->
+      <path d="M3 15.4 16 6l13 9.4" />
+      <path d="M5.6 13.5v12.8h20.8V13.5" />
+      <!-- Штриховка кровли: три линии вместо девяти — на 16 px больше не читается. -->
+      <path d="M10.6 11.7 8.4 15.4M16 8.1l-2.6 7.3M21.4 11.7l1.8 3.7" stroke-width="1.2" />
+      <!-- Проёмы: два окна и дверь. -->
+      <path d="M9.6 18.4h3v3.2h-3zM19.4 18.4h3v3.2h-3z" />
+      <path d="M14.9 18.4h2.2v7.9h-2.2z" />
+    </g>
+  </svg>
+  <span class="logo__text">
+    <b class="logo__first">{first}</b>{rest.length > 0 && <span class="logo__rest">{rest.join(' ')}</span>}
+  </span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--fg);
+  }
+
+  .logo__mark {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    color: var(--accent-text);
+  }
+
+  .logo__text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.36em;
+    font-family: var(--font-display);
+    font-size: 15px;
+    line-height: 1;
+    /* Разрядка вместо кегля: набранное вразрядку название читается как
+       знак, а не как первое слово абзаца. */
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .logo__first {
+    font-weight: 600;
+  }
+
+  .logo__rest {
+    font-weight: 300;
+    color: var(--fg-muted);
+  }
+
+  .logo--lg .logo__mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .logo--lg .logo__text {
+    font-size: 19px;
+  }
+</style>

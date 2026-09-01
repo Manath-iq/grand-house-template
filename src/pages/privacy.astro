@@ -1,0 +1,106 @@
+---
+/**
+ * Политика конфиденциальности.
+ *
+ * Отдельная страница нужна не для галочки: без ссылки на политику рядом
+ * с формой заявка формально собирает персональные данные без основания,
+ * и это первое, к чему цепляются при проверке.
+ *
+ * Страница закрыта от индексации: в выдаче по названию компании должна
+ * стоять главная, а не служебный документ.
+ */
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { asset } from '../lib/asset';
+---
+
+<Base title={`${copy.privacy.title} — ${client.brand.name}`} noindex>
+  <Header />
+
+  <main id="main" class="section policy">
+    <div class="shell">
+      <div class="policy__box">
+        <a class="policy__back" href={asset('/')}>
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          {copy.privacy.back}
+        </a>
+
+        <h1 class="policy__title">{copy.privacy.title}</h1>
+        <p class="policy__updated mono mono--sm">
+          {copy.privacy.updated} {client.site.policyUpdatedAt}
+        </p>
+        <p class="policy__intro">{copy.privacy.intro}</p>
+
+        {
+          copy.privacy.sections.map((section) => (
+            <section class="policy__section">
+              <h2 class="policy__h">{section.h}</h2>
+              {section.p.map((text) => <p class="policy__p">{text}</p>)}
+            </section>
+          ))
+        }
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .policy {
+    padding-top: calc(var(--header-h) + var(--sp-block));
+  }
+
+  .policy__box {
+    max-width: 68ch;
+  }
+
+  .policy__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: var(--sp-block);
+    font-size: var(--fs-small);
+    color: var(--fg-muted);
+    text-decoration: none;
+  }
+
+  .policy__back:hover {
+    color: var(--fg);
+  }
+
+  .policy__title {
+    font-size: clamp(32px, 4.6vw, 54px);
+  }
+
+  .policy__updated {
+    margin-top: 14px;
+    color: var(--fg-muted);
+  }
+
+  .policy__intro {
+    margin-top: 24px;
+    font-size: var(--fs-lead);
+    line-height: 1.55;
+  }
+
+  .policy__section {
+    margin-top: var(--sp-block);
+  }
+
+  .policy__h {
+    font-size: clamp(20px, 2.1vw, 26px);
+    margin-bottom: 14px;
+  }
+
+  .policy__p {
+    margin-bottom: 12px;
+    color: var(--fg-muted);
+    line-height: 1.65;
+  }
+</style>

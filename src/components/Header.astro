@@ -1,0 +1,297 @@
+---
+/**
+ * Липкая шапка.
+ *
+ * Телефон в шапке — не украшение: часть аудитории в этой нише не заполняет
+ * формы вообще и звонит сразу. Он виден на всех размерах, на узких экранах
+ * сжимается до иконки.
+ */
+import Logo from './Logo.astro';
+import { client } from '../config';
+import { copy } from '../config/copy';
+---
+
+<header class="header" data-header>
+  <div class="header__inner shell">
+    <a class="header__logo" href="#top" aria-label={copy.a11y.logoHome}>
+      <Logo />
+    </a>
+
+    <nav class="header__nav" aria-label="Основная навигация">
+      {copy.header.nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <div class="header__actions">
+      <a
+        class="header__phone"
+        href={`tel:+${client.contacts.phoneRaw}`}
+        aria-label={`${copy.a11y.phoneLink} ${client.contacts.phone}`}
+      >
+        <span class="header__phone-icon" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path
+              d="M6.2 3.5 8 7l-1.7 1.6a11 11 0 0 0 5.1 5.1L13 12l3.5 1.8v3a1.5 1.5 0 0 1-1.7 1.5A14.5 14.5 0 0 1 2.7 5.2 1.5 1.5 0 0 1 4.2 3.5h2Z"
+            ></path>
+          </svg>
+        </span>
+        <span class="header__phone-text">{client.contacts.phone}</span>
+      </a>
+      <button class="btn btn--primary header__cta" type="button" data-quiz-open>{copy.cta}</button>
+      <button class="header__burger" type="button" data-menu-toggle aria-expanded="false" aria-controls="menu">
+        <span class="sr-only" data-menu-label>{copy.header.menuOpen}</span>
+        <span class="header__burger-bar" aria-hidden="true"></span>
+        <span class="header__burger-bar" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu" id="menu" data-menu hidden>
+    <nav class="menu__nav shell" aria-label="Меню">
+      {copy.header.nav.map((item) => <a href={item.href} data-menu-link>{item.label}</a>)}
+      <a class="menu__phone" href={`tel:+${client.contacts.phoneRaw}`}>{client.contacts.phone}</a>
+      {
+        client.contacts.phoneAlt && (
+          <a class="menu__phone" href={`tel:+${client.contacts.phoneAltRaw}`}>
+            {client.contacts.phoneAlt}
+          </a>
+        )
+      }
+    </nav>
+  </div>
+</header>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: color-mix(in srgb, var(--c-paper) 82%, transparent);
+    /* Размытие вместо плотной заливки: под шапкой продолжает читаться
+       фотография первого экрана, и страница не разрезается пополам. */
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border-bottom: var(--hair) solid transparent;
+    transition:
+      border-color var(--dur-fast) var(--ease),
+      background-color var(--dur-fast) var(--ease);
+  }
+
+  /* Граница появляется только когда под шапкой действительно есть контент:
+     на самом верху страницы линия выглядела бы случайной. */
+  .header[data-scrolled] {
+    border-bottom-color: var(--line);
+    background: color-mix(in srgb, var(--c-paper) 94%, transparent);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: var(--header-h);
+  }
+
+  .header__logo {
+    display: inline-flex;
+    align-items: center;
+    /* Знак — ссылка «наверх», и на телефоне по нему целятся большим пальцем.
+       Высота самого знака 34 px, поэтому цель добирается до 44 отступами. */
+    min-height: 44px;
+    text-decoration: none;
+    flex: none;
+  }
+
+  .header__nav {
+    display: none;
+    margin-inline: auto;
+    gap: 26px;
+    font-size: var(--fs-small);
+  }
+
+  .header__nav a {
+    color: var(--fg-muted);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease);
+  }
+
+  .header__nav a:hover {
+    color: var(--fg);
+  }
+
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+  }
+
+  .header__phone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 44px;
+    min-height: 44px;
+    padding-inline: 4px;
+    font-size: var(--fs-small);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Иконка — состояние по умолчанию: на узком экране текст номера не влезает,
+     и если спрятать заодно и её, от ссылки остаются одни отступы. Именно так
+     и было: невидимая цель 8x44 в шапке телефона. */
+  .header__phone-icon {
+    display: inline-flex;
+  }
+
+  .header__phone-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header__phone-text {
+    display: none;
+  }
+
+  .header__cta {
+    display: none;
+  }
+
+  .header__burger {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .header__burger-bar {
+    display: block;
+    width: 20px;
+    height: 1.5px;
+    background: var(--fg);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+
+  .header__burger[aria-expanded='true'] .header__burger-bar:first-child {
+    transform: translateY(3.25px) rotate(45deg);
+  }
+
+  .header__burger[aria-expanded='true'] .header__burger-bar:last-child {
+    transform: translateY(-3.25px) rotate(-45deg);
+  }
+
+  .menu {
+    border-top: var(--hair) solid var(--line);
+    background: var(--c-paper);
+  }
+
+  .menu__nav {
+    display: flex;
+    flex-direction: column;
+    padding-block: 12px 20px;
+  }
+
+  .menu__nav a {
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    border-bottom: var(--hair) solid var(--line-soft);
+    text-decoration: none;
+    font-size: 17px;
+  }
+
+  .menu__phone {
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+    color: var(--accent-text);
+  }
+
+  .menu__nav a:last-child {
+    border-bottom: 0;
+  }
+
+  @media (min-width: 900px) {
+    .header__nav {
+      display: flex;
+    }
+
+    .header__phone-icon {
+      display: none;
+    }
+
+    .header__phone-text {
+      display: inline;
+    }
+
+    .header__cta {
+      display: inline-flex;
+    }
+
+    .header__burger {
+      display: none;
+    }
+
+    .menu {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Шапка: граница при скролле и мобильное меню.
+   *
+   * Наблюдатель вместо слушателя скролла — обработчик на scroll срабатывает
+   * сотни раз в секунду и на слабом телефоне даёт заметный джанк при том,
+   * что нужен один бинарный признак «страница сдвинута».
+   */
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.querySelector<HTMLElement>('[data-menu]');
+  const label = document.querySelector<HTMLElement>('[data-menu-label]');
+
+  if (header) {
+    const sentinel = document.createElement('div');
+    sentinel.setAttribute('aria-hidden', 'true');
+    sentinel.style.cssText = 'position:absolute;top:0;height:1px;width:1px;';
+    document.body.prepend(sentinel);
+
+    new IntersectionObserver(
+      ([entry]) => header.toggleAttribute('data-scrolled', !entry.isIntersecting),
+      { threshold: 0 }
+    ).observe(sentinel);
+  }
+
+  if (toggle && menu && label) {
+    const OPEN = toggle.dataset.labelOpen ?? label.textContent ?? '';
+
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      menu.hidden = !open;
+      label.textContent = open ? 'Закрыть меню' : OPEN;
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    /* Меню закрывается по выбору пункта: иначе после перехода к секции оно
+       остаётся раскрытым и закрывает собой ровно то, к чему перешли. */
+    menu.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => setOpen(false)));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>

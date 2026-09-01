@@ -1,0 +1,243 @@
+---
+/**
+ * Комплектации.
+ *
+ * Блок отвечает на вопрос, который заказчик задаёт вслух редко, а про себя
+ * всегда: «почему у соседей дешевле». Ответ почти всегда один — сравнивают
+ * разные комплектации, и до появления такой таблицы это не видно.
+ *
+ * Настоящая <table>, а не сетка из div: у таблицы есть заголовки строк и
+ * колонок, и скринридер читает ячейку как «Отопление с котлом — Под ключ —
+ * входит». Сетка на такое не способна.
+ */
+import { client } from '../config';
+import { copy } from '../config/copy';
+import { num } from '../lib/format';
+
+const { packages } = client;
+---
+
+<section class="section packages" id="packages" aria-labelledby="packages-title">
+  <div class="shell">
+    <div class="packages__head">
+      <span class="eyebrow">{copy.packages.eyebrow}</span>
+      <h2 id="packages-title">{copy.packages.title}</h2>
+      <p class="lead packages__lead">{copy.packages.lead}</p>
+    </div>
+
+    <div class="packages__scroll">
+      <table class="packages__table">
+        <caption class="sr-only">{copy.packages.tableLabel}</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="packages__corner"><span class="sr-only">{copy.packages.tableLabel}</span></th>
+            {
+              packages.columns.map((column) => (
+                <th scope="col" class:list={['packages__col', column.highlighted && 'is-hi']}>
+                  {column.highlighted && <span class="packages__badge mono mono--sm">{copy.packages.recommended}</span>}
+                  <span class="packages__col-name">{column.name}</span>
+                  <span class="packages__col-tagline">{column.tagline}</span>
+                  <span class="packages__price">
+                    {num(column.pricePerM2)}
+                    <span class="packages__unit mono mono--sm">{copy.packages.perM2}</span>
+                  </span>
+                </th>
+              ))
+            }
+          </tr>
+        </thead>
+        <tbody>
+          {
+            packages.rows.map((row) => (
+              <tr>
+                <th scope="row" class="packages__label">
+                  {row.label}
+                </th>
+                {packages.columns.map((column) => {
+                  const value = row.values[column.key];
+                  return (
+                    <td class:list={['packages__cell', column.highlighted && 'is-hi']}>
+                      {value === true && (
+                        <>
+                          <svg class="packages__yes" viewBox="0 0 16 16" aria-hidden="true">
+                            <path
+                              d="m3.5 8.5 3 3 6-7"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="1.9"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                          <span class="sr-only">{copy.packages.yes}</span>
+                        </>
+                      )}
+                      {value === false && (
+                        <>
+                          <span class="packages__no" aria-hidden="true" />
+                          <span class="sr-only">{copy.packages.no}</span>
+                        </>
+                      )}
+                      {typeof value === 'string' && <span class="packages__text mono mono--sm">{value}</span>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="packages__note mono mono--sm">{copy.packages.note}</p>
+  </div>
+</section>
+
+<style>
+  .packages__head {
+    max-width: 50ch;
+    margin-bottom: var(--sp-block);
+  }
+
+  .packages__lead {
+    margin-top: 20px;
+  }
+
+  /* Таблица шире экрана телефона по определению: три колонки с ценами не
+     сжимаются до 360 px без потери смысла. Прокрутка живёт внутри блока,
+     страница целиком по горизонтали не едет. */
+  .packages__scroll {
+    overflow-x: auto;
+    margin-inline: calc(var(--pad) * -1);
+    padding-inline: var(--pad);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .packages__table {
+    width: 100%;
+    min-width: 660px;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .packages__corner {
+    width: 40%;
+    background: var(--bg);
+  }
+
+  .packages__col {
+    position: relative;
+    width: 20%;
+    padding: 24px 20px;
+    vertical-align: bottom;
+    background: var(--surface);
+    border-top-left-radius: var(--r-lg);
+    border-top-right-radius: var(--r-lg);
+    font-weight: 400;
+  }
+
+  .packages__col.is-hi {
+    background: var(--c-ink);
+    color: var(--c-paper);
+  }
+
+  .packages__badge {
+    display: inline-block;
+    margin-bottom: 12px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    background: var(--c-accent-on-ink);
+    color: var(--c-ink);
+    letter-spacing: 0.04em;
+  }
+
+  .packages__col-name {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+  }
+
+  .packages__col-tagline {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--fg-muted);
+  }
+
+  .packages__col.is-hi .packages__col-tagline {
+    color: var(--c-muted-on-ink);
+  }
+
+  .packages__price {
+    display: block;
+    margin-top: 16px;
+    font-family: var(--font-display);
+    font-size: 23px;
+    font-weight: 500;
+    letter-spacing: var(--tr-h3);
+    white-space: nowrap;
+  }
+
+  .packages__unit {
+    margin-left: 6px;
+    font-weight: 400;
+    color: var(--fg-muted);
+  }
+
+  .packages__col.is-hi .packages__unit {
+    color: var(--c-muted-on-ink);
+  }
+
+  .packages__label {
+    padding: 15px 20px 15px 0;
+    font-weight: 400;
+    font-size: var(--fs-small);
+    line-height: 1.4;
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .packages__cell {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: var(--hair) solid var(--line);
+  }
+
+  .packages__cell.is-hi {
+    background: var(--surface);
+  }
+
+  tbody tr:last-child .packages__cell.is-hi {
+    border-bottom-left-radius: var(--r-lg);
+    border-bottom-right-radius: var(--r-lg);
+  }
+
+  .packages__yes {
+    width: 17px;
+    height: 17px;
+    color: var(--accent-text);
+  }
+
+  /* Прочерк, а не крестик: крестик читается как ошибка, а «не входит» —
+     это не ошибка, а осознанный состав более дешёвой комплектации. */
+  .packages__no {
+    display: inline-block;
+    width: 13px;
+    height: 1.5px;
+    background: var(--line-strong);
+    vertical-align: middle;
+  }
+
+  .packages__text {
+    color: var(--fg-muted);
+    line-height: 1.35;
+  }
+
+  .packages__note {
+    margin-top: var(--sp-item);
+    color: var(--fg-muted);
+    line-height: 1.5;
+  }
+</style>
