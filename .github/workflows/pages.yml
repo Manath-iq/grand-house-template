@@ -30,11 +30,13 @@ jobs:
       - run: npm ci
 
       # Идёт до сборки: из его выводов берутся адрес сайта и префикс пути.
-      # enablement включает Pages в настройках репозитория, если он выключен.
+      #
+      # Без enablement: true. Токену workflow не хватает прав создать сайт
+      # Pages, и шаг падает с «Resource not accessible by integration».
+      # Pages включается один раз снаружи:
+      #   gh api -X POST repos/<owner>/<repo>/pages -f build_type=workflow
       - uses: actions/configure-pages@v5
         id: pages
-        with:
-          enablement: true
 
       - run: npm run build
         env:
